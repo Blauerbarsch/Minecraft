@@ -1,0 +1,147 @@
+# ============================================================
+#  OpWatch – Spieler-Monitoring mit Web-Dashboard
+#  Nach Änderungen den Server neu starten.
+# ============================================================
+
+web:
+  enabled: true
+  # 0.0.0.0 = von überall erreichbar (Port in der Firewall freigeben, wenn nötig)
+  # 127.0.0.1 = nur auf dem Server-PC selbst
+  bind: "0.0.0.0"
+  port: 8765
+  # auto = eigene Seite nur, wenn das Plugin WebConsole fehlt – sonst als Tab "Überwachung" dort (nur Admins)
+  # true = immer zusätzlich eigene Seite, false = nie
+  standalone: auto
+  username: "admin"
+  # Wird beim ersten Start automatisch zufällig gesetzt (steht dann hier).
+  password: "CHANGE_ME"
+
+storage:
+  # wie viele Einträge das Dashboard maximal im Speicher hält
+  memory-events: 20000
+  # beim Start werden die Logs der letzten X Tage wieder eingelesen
+  load-days: 7
+
+log:
+  console-commands: true
+  command-blocks: true
+  join-quit: true
+
+creative:
+  # Creative-Item-Entnahmen innerhalb dieser Sekunden werden zu einem Eintrag zusammengefasst
+  group-seconds: 4
+  # Diese Items werden im Dashboard rot markiert ("*" am Anfang = endet auf ...)
+  notable-items:
+    - command_block
+    - chain_command_block
+    - repeating_command_block
+    - command_block_minecart
+    - structure_block
+    - jigsaw
+    - barrier
+    - light
+    - bedrock
+    - end_portal_frame
+    - spawner
+    - trial_spawner
+    - vault
+    - debug_stick
+    - knowledge_book
+    - dragon_egg
+    - elytra
+    - beacon
+    - nether_star
+    - netherite_block
+    - netherite_ingot
+    - diamond_block
+    - enchanted_golden_apple
+    - totem_of_undying
+    - mace
+    - heavy_core
+    - shulker_box
+    - "*_shulker_box"
+    - "*_spawn_egg"
+    - "*_trim_smithing_template"
+    - "*netherite_sword"
+    - "*netherite_pickaxe"
+    - tnt
+    - tnt_minecart
+    - end_crystal
+
+# Commands die nie geloggt werden (z.B. Login-Plugins mit Passwort!)
+ignore-commands:
+  - login
+  - l
+  - register
+  - reg
+  - changepassword
+
+# Commands die im Dashboard hervorgehoben werden
+highlight-commands:
+  - op
+  - deop
+  - gamemode
+  - gm
+  - gmc
+  - give
+  - item
+  - fill
+  - clone
+  - kill
+  - summon
+  - ban
+  - ban-ip
+  - pardon
+  - kick
+  - whitelist
+  - stop
+  - reload
+  - rl
+  - restart
+  - gamerule
+  - enchant
+  - attribute
+  - clear
+  - xp
+  - experience
+  - loot
+  - worldborder
+  - plugins
+  - pl
+  - lp
+  - luckperms
+  - plugman
+
+# Kategorien: Name -> Anzeigename + Commands (ohne "/"; "minecraft:"-Präfix wird ignoriert)
+# "//*" = alle WorldEdit-Befehle (//set, //copy ...)
+categories:
+  gamemode:
+    label: "Gamemode"
+    commands: [gamemode, gm, gmc, gms, gma, gmsp, defaultgamemode]
+  items:
+    label: "Items & XP"
+    commands: [give, item, i, clear, enchant, xp, experience, loot, repair, fix, more, hat, kit, enderchest, ec, invsee]
+  teleport:
+    label: "Teleport"
+    commands: [tp, teleport, tphere, tpa, tpaccept, tpahere, spawn, setspawn, spawnpoint, home, sethome, warp, back, top, spreadplayers, rtp]
+  welt:
+    label: "Welt bearbeiten"
+    commands: [fill, setblock, clone, place, fillbiome, forceload, worldborder, setworldspawn, "//*", worldedit, we, schematic, schem, brush, br]
+  entities:
+    label: "Entities & Effekte"
+    commands: [summon, kill, effect, damage, ride, attribute, data, heal, feed, fly, god, speed, vanish, v]
+  umgebung:
+    label: "Zeit & Wetter"
+    commands: [time, weather, tick, day, night, sun, rain, thunder]
+  admin:
+    label: "Admin / Rechte"
+    commands: [op, deop, ban, ban-ip, banlist, pardon, pardon-ip, kick, whitelist, stop, restart, reload, rl, save-all, save-off, save-on, gamerule, difficulty, plugins, pl, lp, luckperms, perm, permissions, plugman, transfer, setidletimeout, publish, debug, jfr, perf]
+  chat:
+    label: "Chat & Nachrichten"
+    commands: [msg, tell, w, r, reply, me, say, tellraw, title, teammsg, tm, broadcast, bc, mail]
+  info:
+    label: "Info"
+    commands: [help, list, seed, version, ver, about, tps, mspt, ping, locate, trigger]
+  scoreboard:
+    label: "Scoreboard & Teams"
+    commands: [scoreboard, team, bossbar, tag, advancement, recipe, function, schedule, datapack, random, return, execute]

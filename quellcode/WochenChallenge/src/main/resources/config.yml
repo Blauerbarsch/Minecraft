@@ -1,0 +1,181 @@
+# ============================================================
+#  WochenChallenge – jede Woche eine neue Challenge
+#  Nach Änderungen den Server neu starten.
+#
+#  Gezählt wird über die normalen Minecraft-Statistiken, aber nur
+#  das, was im Survival/Adventure passiert. Creative zählt nie.
+# ============================================================
+
+server-name: "Unser Server"
+
+web:
+  bind: "0.0.0.0"
+  port: 8767
+  # auto = eigene Seite nur, wenn das Plugin WebConsole fehlt – sonst erscheint sie dort als Tab
+  # true = immer zusätzlich eigene Seite, false = nie
+  standalone: auto
+  password: ""          # leer = ohne Passwort
+  public-url: ""        # z.B. "http://123.45.67.89:8767" – wird bei /challenge angezeigt
+
+week:
+  # Wann eine Woche endet und die nächste Challenge startet
+  day: SUNDAY           # MONDAY, TUESDAY, ... SUNDAY
+  hour: 20              # 0–23
+  timezone: "Europe/Berlin"
+  # Wird das Plugin z.B. am Samstag installiert, läuft die erste Challenge
+  # bis zum übernächsten Termin, wenn sonst weniger als so viele Tage übrig wären.
+  min-days-first-week: 3
+
+# random = zufällig (die letzten 4 werden nicht wiederholt), order = der Reihe nach
+selection: random
+
+# Was passiert, wenn jemand während der Woche im Creative war?
+#   mark       = zählt weiter, wird aber auf der Seite markiert
+#   disqualify = fliegt für diese Woche aus der Wertung
+#   ignore     = egal (Creative-Fortschritt zählt trotzdem nie)
+creative-rule: mark
+
+announce-new-leader: true
+poll-seconds: 5
+
+# Belohnungen für Platz 1–3 ("ITEM:Anzahl" oder "cmd:<Konsolen-Befehl>", %player% = Gewinner)
+# Wer offline ist, bekommt sie beim nächsten Einloggen.
+rewards:
+  1: ["DIAMOND:8", "GOLDEN_APPLE:2"]
+  2: ["DIAMOND:4"]
+  3: ["DIAMOND:2"]
+# optionaler Text für die Webseite, z.B. wenn ihr um echte Sachen spielt
+rewards-text:
+  1: ""
+  2: ""
+  3: ""
+
+# ------------------------------------------------------------
+#  Challenges
+#   mode: most  = wer am Ende der Woche am meisten hat
+#   mode: race  = wer zuerst "target" erreicht
+#   stats: Minecraft-Statistiken, werden zusammengezählt
+#          STATISTIK oder STATISTIK:BLOCK/ITEM/MOB
+#   divisor: Rohwert wird dadurch geteilt (Strecken sind in cm -> 100 = Blöcke)
+# ------------------------------------------------------------
+challenges:
+  angler:
+    title: "Meisterangler"
+    description: "Wer fängt diese Woche die meisten Fische (und Schätze)?"
+    mode: most
+    stats: [FISH_CAUGHT]
+    unit: "Fänge"
+
+  elytra:
+    title: "Flügel gesucht"
+    description: "Wer holt sich als Erstes eine Elytra aus einem End-Schiff?"
+    mode: race
+    stats: ["PICKUP:ELYTRA"]
+    target: 1
+    unit: "Elytra"
+
+  diamanten:
+    title: "Diamantenfieber"
+    description: "Bau die meisten Diamanterze ab."
+    mode: most
+    stats: ["MINE_BLOCK:DIAMOND_ORE", "MINE_BLOCK:DEEPSLATE_DIAMOND_ORE"]
+    unit: "Erze"
+
+  netherite:
+    title: "Ab in den Nether"
+    description: "Wer findet zuerst 4 Antike Trümmer – genug für einen Netherit-Barren?"
+    mode: race
+    stats: ["MINE_BLOCK:ANCIENT_DEBRIS"]
+    target: 4
+    unit: "Trümmer"
+
+  zombies:
+    title: "Zombie-Apokalypse"
+    description: "Erledige die meisten Zombies – Wüstenzombies, Ertrunkene und Zombie-Dorfbewohner zählen mit."
+    mode: most
+    stats: ["KILL_ENTITY:ZOMBIE", "KILL_ENTITY:HUSK", "KILL_ENTITY:DROWNED", "KILL_ENTITY:ZOMBIE_VILLAGER"]
+    unit: "Zombies"
+
+  creeper:
+    title: "Creeper-Jäger"
+    description: "Wer erwischt die meisten Creeper, bevor sie zischen?"
+    mode: most
+    stats: ["KILL_ENTITY:CREEPER"]
+    unit: "Creeper"
+
+  wanderer:
+    title: "Weltenbummler"
+    description: "Lauf und sprinte die längste Strecke – nur zu Fuß."
+    mode: most
+    stats: [WALK_ONE_CM, SPRINT_ONE_CM]
+    divisor: 100
+    unit: "Blöcke"
+
+  holz:
+    title: "Holzfäller"
+    description: "Fäll die meisten Baumstämme."
+    mode: most
+    stats: ["MINE_BLOCK:OAK_LOG", "MINE_BLOCK:SPRUCE_LOG", "MINE_BLOCK:BIRCH_LOG", "MINE_BLOCK:JUNGLE_LOG",
+            "MINE_BLOCK:ACACIA_LOG", "MINE_BLOCK:DARK_OAK_LOG", "MINE_BLOCK:MANGROVE_LOG", "MINE_BLOCK:CHERRY_LOG",
+            "MINE_BLOCK:PALE_OAK_LOG", "MINE_BLOCK:CRIMSON_STEM", "MINE_BLOCK:WARPED_STEM"]
+    unit: "Stämme"
+
+  bauer:
+    title: "Bauernhof"
+    description: "Züchte die meisten Tiere."
+    mode: most
+    stats: [ANIMALS_BRED]
+    unit: "Tiere"
+
+  haendler:
+    title: "Handelsimperium"
+    description: "Wer handelt am meisten mit Dorfbewohnern?"
+    mode: most
+    stats: [TRADED_WITH_VILLAGER]
+    unit: "Trades"
+
+  leuchtfeuer:
+    title: "Leuchtfeuer"
+    description: "Wer baut als Erstes ein Leuchtfeuer? Dafür muss der Wither dran glauben."
+    mode: race
+    stats: ["CRAFT_ITEM:BEACON"]
+    target: 1
+    unit: "Leuchtfeuer"
+
+  dreizack:
+    title: "Neptuns Gabel"
+    description: "Wer erbeutet zuerst einen Dreizack von einem Ertrunkenen?"
+    mode: race
+    stats: ["PICKUP:TRIDENT"]
+    target: 1
+    unit: "Dreizack"
+
+  jaeger:
+    title: "Monsterjäger"
+    description: "Töte die meisten Mobs – egal welche."
+    mode: most
+    stats: [MOB_KILLS]
+    unit: "Mobs"
+
+  flieger:
+    title: "Vielflieger"
+    description: "Leg die längste Strecke mit der Elytra zurück."
+    mode: most
+    stats: [AVIATE_ONE_CM]
+    divisor: 100
+    unit: "Blöcke"
+    enabled: false   # erst einschalten, wenn alle eine Elytra haben
+
+  kuchen:
+    title: "Kuchenmonster"
+    description: "Iss die meisten Kuchenstücke. Ja, wirklich."
+    mode: most
+    stats: [CAKE_SLICES_EATEN]
+    unit: "Stücke"
+
+  zauberer:
+    title: "Zauberlehrling"
+    description: "Verzaubere die meisten Items am Zaubertisch."
+    mode: most
+    stats: [ITEM_ENCHANTED]
+    unit: "Verzauberungen"

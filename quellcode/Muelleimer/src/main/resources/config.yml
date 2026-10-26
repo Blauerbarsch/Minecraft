@@ -1,0 +1,9 @@
+# Mülleimer
+# Titel des Fensters
+title: "Mülleimer – wird beim Schließen geleert"
+# Größe: 1–6 Reihen
+rows: 4
+# So lange kann man mit /trash undo das zuletzt Weggeworfene zurückholen (0 = aus)
+undo-seconds: 120
+# Rezept für den Mülleimer-Block: Kessel + Kaktus (formlos)
+recipe: true

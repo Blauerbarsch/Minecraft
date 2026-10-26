@@ -1,0 +1,32 @@
+# ============================================================
+#  ServerStats – Statistik-Seite für alle Spieler
+#  Nach Änderungen den Server neu starten.
+# ============================================================
+
+server-name: "Unser Server"
+
+web:
+  bind: "0.0.0.0"
+  port: 8766
+  # auto = eigene Seite nur, wenn das Plugin WebConsole fehlt – sonst erscheint sie dort als Tab
+  # true = immer zusätzlich eigene Seite, false = nie
+  standalone: auto
+  # leer lassen = ohne Passwort (die Seite zeigt nur Statistiken, keine Koordinaten)
+  password: ""
+  # optional: Adresse, die bei /stats im Chat angezeigt wird, z.B. "http://123.45.67.89:8766"
+  public-url: ""
+
+# wie oft die Werte der Online-Spieler aktualisiert werden
+refresh-seconds: 30
+
+# Seite "Spieler": Lebenswerte, Rüstung mit Verzauberungen, Effekte, Inventar
+# Admins (im Dashboard der WebConsole) sehen immer alles.
+players-page:
+  enabled: true
+  # Dürfen Member sehen, wo jemand gerade ist?
+  members-see-location: false
+  # Dürfen Member Inventar und Endertruhe anderer sehen?
+  members-see-inventory: false
+
+# Spieler, die nicht auf der Seite auftauchen sollen
+hidden-players: []

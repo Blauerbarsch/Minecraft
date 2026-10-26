@@ -1,0 +1,11 @@
+name: GraveRestore
+version: 1.2.0
+main: dev.graverestore.GraveRestorePlugin
+api-version: '1.21'
+description: Stellt Inventare aus den Logs des Grab-Plugins 1:1 wieder her
+author: lucagum
+commands:
+  grab:
+    description: Tode anzeigen und Inventare wiederherstellen (nur Konsole / Web-Konsole)
+    usage: /grab liste [Spieler] | /grab zurück <Spieler> [Nr]
+    aliases: [graverestore]

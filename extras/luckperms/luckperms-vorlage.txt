@@ -1,0 +1,89 @@
+lp creategroup vertraut
+lp creategroup mod
+lp creategroup admin
+lp group default setweight 0
+lp group default setdisplayname Spieler
+lp group default permission set essentials.help true
+lp group default permission set essentials.helpop true
+lp group default permission set essentials.list true
+lp group default permission set essentials.motd true
+lp group default permission set essentials.rules true
+lp group default permission set essentials.msg true
+lp group default permission set essentials.r true
+lp group default permission set essentials.mail true
+lp group default permission set essentials.mail.send true
+lp group default permission set essentials.ignore true
+lp group default permission set essentials.me true
+lp group default permission set essentials.afk true
+lp group default permission set essentials.home true
+lp group default permission set essentials.sethome true
+lp group default permission set essentials.delhome true
+lp group default permission set essentials.tpa true
+lp group default permission set essentials.tpahere true
+lp group default permission set essentials.tpaccept true
+lp group default permission set essentials.tpdeny true
+lp group default permission set essentials.tpacancel true
+lp group default permission set essentials.back true
+lp group default permission set essentials.spawn true
+lp group default permission set essentials.warp true
+lp group default permission set essentials.warp.list true
+lp group default permission set essentials.seen true
+lp group default permission set essentials.realname true
+lp group default permission set essentials.getpos true
+lp group default permission set essentials.depth true
+lp group default permission set essentials.compass true
+lp group default permission set essentials.ping true
+lp group default permission set essentials.suicide true
+lp group vertraut setweight 10
+lp group vertraut setdisplayname Stammspieler
+lp group vertraut parent add default
+lp group vertraut meta setprefix 10 "&a[Stamm] "
+lp group vertraut permission set essentials.back.ondeath true
+lp group vertraut permission set essentials.sethome.multiple true
+lp group vertraut permission set essentials.sethome.multiple.vip true
+lp group vertraut permission set essentials.hat true
+lp group vertraut permission set essentials.workbench true
+lp group vertraut permission set essentials.anvil true
+lp group vertraut permission set essentials.enderchest true
+lp group vertraut permission set essentials.recipe true
+lp group vertraut permission set essentials.nick true
+lp group vertraut permission set essentials.nick.color true
+lp group vertraut permission set essentials.chat.color true
+lp group mod setweight 50
+lp group mod setdisplayname Moderator
+lp group mod parent add vertraut
+lp group mod meta setprefix 50 "&9[Mod] "
+lp group mod permission set essentials.sethome.multiple.staff true
+lp group mod permission set essentials.kick true
+lp group mod permission set essentials.mute true
+lp group mod permission set essentials.tempban true
+lp group mod permission set essentials.ban true
+lp group mod permission set essentials.unban true
+lp group mod permission set essentials.whois true
+lp group mod permission set essentials.socialspy true
+lp group mod permission set essentials.invsee true
+lp group mod permission set essentials.enderchest.others true
+lp group mod permission set essentials.tp true
+lp group mod permission set essentials.tphere true
+lp group mod permission set essentials.tppos true
+lp group mod permission set essentials.vanish true
+lp group mod permission set essentials.fly true
+lp group mod permission set essentials.heal true
+lp group mod permission set essentials.feed true
+lp group mod permission set essentials.time true
+lp group mod permission set essentials.weather true
+lp group mod permission set essentials.gamemode true
+lp group mod permission set essentials.gamemode.survival true
+lp group mod permission set essentials.gamemode.creative true
+lp group mod permission set essentials.gamemode.spectator true
+lp group mod permission set maintenance.bypass true
+lp group admin setweight 100
+lp group admin setdisplayname Admin
+lp group admin parent add mod
+lp group admin meta setprefix 100 "&c[Admin] "
+lp group admin permission set * true
+lp createtrack rang
+lp track rang append default
+lp track rang append vertraut
+lp track rang append mod
+lp track rang append admin

@@ -1,0 +1,314 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Server-Statistik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --slate:#3a3f4b; --slate-2:#454b59; --slate-3:#525a6a; --edge:#2a2e37;
+  --text:#f1efe6; --mute:#b3b8c4;
+  --diamond:#5fe0da; --gold:#f5c84c; --redstone:#ef5a4f; --emerald:#46c977; --lapis:#6c8cff; --amethyst:#c08cf2;
+  --px:'Pixelify Sans', 'Rubik', system-ui, sans-serif;
+}
+*{box-sizing:border-box}
+html{background:var(--slate)}
+body{margin:0;color:var(--text);font:15px/1.5 'Rubik',system-ui,sans-serif;
+  background:
+    linear-gradient(90deg, rgba(0,0,0,.05) 50%, transparent 50%) 0 0/32px 32px,
+    linear-gradient(rgba(0,0,0,.05) 50%, transparent 50%) 0 0/32px 32px,
+    var(--slate);}
+.wrap{max-width:1120px;margin:0 auto;padding:0 16px}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+h1,h2,h3{font-family:var(--px);font-weight:700;margin:0;letter-spacing:.5px}
+h2{font-size:30px;margin:56px 0 6px}
+.lead{color:var(--mute);margin:0 0 20px;max-width:62ch}
+.block{background:var(--slate-2);border:3px solid var(--edge);box-shadow:4px 4px 0 var(--edge);border-radius:2px}
+
+header{padding:28px 0 12px;display:flex;flex-wrap:wrap;align-items:end;gap:12px 24px}
+header h1{font-size:44px;line-height:1}
+.online{display:flex;gap:8px;flex-wrap:wrap;align-items:center;color:var(--mute);font-size:14px}
+.on{display:flex;align-items:center;gap:6px;background:var(--slate-2);border:2px solid var(--edge);padding:3px 8px 3px 3px}
+.on img,.on .ph{width:22px;height:22px}
+
+img.head,.ph{image-rendering:pixelated;display:block;background:var(--slate-3)}
+.ph{display:grid;place-items:center;font-family:var(--px);color:var(--edge);font-weight:700}
+
+/* --- leaderboard hero --- */
+.picker{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 22px}
+.picker button{font:500 14px 'Rubik',sans-serif;color:var(--text);background:var(--slate-2);border:2px solid var(--edge);padding:6px 12px;cursor:pointer;border-radius:2px}
+.picker button[aria-pressed=true]{background:var(--gold);color:#2a2410;border-color:#8a6d1f}
+.board{display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:end}
+@media (max-width:820px){.board{grid-template-columns:1fr}}
+.podium{display:grid;grid-template-columns:1fr 1fr 1fr;align-items:end;gap:10px;min-height:330px;padding:16px 16px 0}
+.step{display:flex;flex-direction:column;align-items:center;text-align:center;gap:6px}
+.step .who{font-weight:700;font-size:15px;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.step .val{font-family:var(--px);font-size:22px}
+.step img,.step .ph{width:64px;height:64px;border:3px solid var(--edge)}
+.step .pillar{width:100%;border:3px solid var(--edge);border-bottom:0;display:grid;place-items:start center;padding-top:8px;
+  font-family:var(--px);font-size:34px;color:rgba(0,0,0,.35)}
+.p1 .pillar{height:150px;background:var(--gold)}
+.p2 .pillar{height:105px;background:#cfd6df}
+.p3 .pillar{height:70px;background:#c98a52}
+.p1 img,.p1 .ph{width:84px;height:84px}
+.rest{list-style:none;margin:0;padding:6px 0;counter-reset:r 3}
+.rest li{display:grid;grid-template-columns:34px 28px 1fr auto;gap:10px;align-items:center;padding:7px 14px}
+.rest li+li{border-top:2px solid var(--edge)}
+.rest li::before{counter-increment:r;content:counter(r) ".";color:var(--mute);font-family:var(--px)}
+.rest img,.rest .ph{width:28px;height:28px}
+.rest .v{font-family:var(--px);font-size:18px}
+.rest .bar{grid-column:3/5;height:6px;background:var(--edge);margin-top:-4px}
+.rest .bar i{display:block;height:100%;background:var(--gold)}
+.empty{color:var(--mute);padding:24px;text-align:center}
+
+/* --- wall of shame --- */
+.shame{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:16px}
+.award{padding:16px;display:grid;grid-template-columns:56px 1fr;gap:4px 14px;align-items:center}
+.award img,.award .ph{width:56px;height:56px;grid-row:span 2;border:3px solid var(--edge)}
+.award h3{font-size:21px;color:var(--redstone)}
+.award .by{font-size:14px;color:var(--mute)}
+.award .by b{color:var(--text)}
+.award .runners{grid-column:1/3;font-size:13px;color:var(--mute);margin-top:8px;border-top:2px dashed var(--edge);padding-top:8px}
+
+.feed{list-style:none;margin:0;padding:0}
+.feed li{display:grid;grid-template-columns:28px 1fr auto;gap:12px;align-items:center;padding:9px 14px}
+.feed li+li{border-top:2px solid var(--edge)}
+.feed img,.feed .ph{width:28px;height:28px}
+.feed time{color:var(--mute);font-size:13px;white-space:nowrap}
+
+/* --- players --- */
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.pcard{padding:12px;display:flex;gap:12px;align-items:center;cursor:pointer;text-align:left;color:inherit;font:inherit;width:100%}
+.pcard:hover{background:var(--slate-3)}
+.pcard img,.pcard .ph{width:44px;height:44px;border:2px solid var(--edge)}
+.pcard .sub{color:var(--mute);font-size:13px}
+.dot{display:inline-block;width:8px;height:8px;background:var(--emerald);margin-right:5px;vertical-align:1px}
+
+dialog{background:var(--slate-2);color:var(--text);border:3px solid var(--edge);box-shadow:6px 6px 0 var(--edge);padding:0;max-width:640px;width:calc(100% - 32px);border-radius:2px}
+dialog::backdrop{background:rgba(20,22,28,.6)}
+.dhead{display:flex;gap:16px;align-items:center;padding:18px 20px;border-bottom:3px solid var(--edge)}
+.dhead img,.dhead .ph{width:72px;height:72px;border:3px solid var(--edge)}
+.dhead h3{font-size:30px}
+.close{margin-left:auto;align-self:start;font:700 20px var(--px);background:none;border:0;color:var(--mute);cursor:pointer}
+.grid2{display:grid;grid-template-columns:1fr auto;gap:0;padding:8px 20px 20px}
+.grid2>span{padding:6px 0;border-bottom:2px solid var(--edge)}
+.grid2>span:nth-child(even){text-align:right;font-family:var(--px);font-size:17px}
+.grid2 .rank{color:var(--gold);font-size:13px;margin-left:6px;font-family:'Rubik',sans-serif}
+footer{color:var(--mute);font-size:13px;padding:48px 0 32px}
+/* inside the WebConsole dashboard the server name is already in its header */
+.embed header h1,.embed .navlink{display:none}
+.navlink{margin-left:auto;color:var(--gold);font-weight:500}
+.embed header{padding-top:20px}
+.embed section:first-of-type h2{margin-top:20px}
+@media (prefers-reduced-motion:no-preference){
+  .podium.anim .step{animation:rise .5s cubic-bezier(.2,.8,.2,1) both}
+  .podium.anim .p2{animation-delay:.08s}.podium.anim .p3{animation-delay:.16s}
+  @keyframes rise{from{transform:translateY(24px);opacity:0}}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1 id="title">Server-Statistik</h1>
+    <div class="online" id="online"></div>
+    <a class="navlink" href="spieler/">Spieler im Detail</a>
+  </header>
+
+  <section aria-labelledby="h-board">
+    <h2 id="h-board">Bestenliste</h2>
+    <p class="lead">Zählt alles seit dem ersten Tag der Welt. Wähl aus, worin ihr euch messen wollt.</p>
+    <div class="picker" id="picker" role="group" aria-label="Statistik auswählen"></div>
+    <div class="board">
+      <div class="podium block" id="podium"></div>
+      <div class="block"><ol class="rest" id="rest"></ol></div>
+    </div>
+  </section>
+
+  <section aria-labelledby="h-shame">
+    <h2 id="h-shame">Wall of Shame</h2>
+    <p class="lead">Wer ist wie oft woran gestorben? Gezählt wird, seit das Plugin läuft – die Mob-Erzfeinde sogar seit Weltbeginn.</p>
+    <div class="shame" id="shame"></div>
+  </section>
+
+  <section aria-labelledby="h-feed">
+    <h2 id="h-feed">Zuletzt gestorben</h2>
+    <p class="lead">Die letzten Tode auf dem Server.</p>
+    <div class="block"><ul class="feed" id="feed"></ul></div>
+  </section>
+
+  <section aria-labelledby="h-players">
+    <h2 id="h-players">Alle Spieler</h2>
+    <p class="lead">Klick auf jemanden für die komplette Statistik.</p>
+    <div class="players" id="players"></div>
+  </section>
+
+  <footer id="foot"></footer>
+</div>
+
+<dialog id="dlg" aria-labelledby="dname"></dialog>
+
+<script>
+if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const D = { data:null, stat:'playtime' };
+
+const MOBS = {zombie:'Zombie',husk:'Wüstenzombie',drowned:'Ertrunkener',zombie_villager:'Zombie-Dorfbewohner',skeleton:'Skelett',stray:'Eiswanderer',
+  bogged:'Sumpfskelett',creeper:'Creeper',spider:'Spinne',cave_spider:'Höhlenspinne',enderman:'Enderman',witch:'Hexe',phantom:'Phantom',
+  pillager:'Plünderer',vindicator:'Diener',evoker:'Magier',ravager:'Verwüster',vex:'Plagegeist',piglin:'Piglin',piglin_brute:'Piglin-Barbar',
+  zombified_piglin:'Zombifizierter Piglin',hoglin:'Hoglin',zoglin:'Zoglin',blaze:'Lohe',ghast:'Ghast',wither_skeleton:'Witherskelett',
+  magma_cube:'Magmawürfel',slime:'Schleim',guardian:'Wächter',elder_guardian:'Großer Wächter',warden:'Wärter',wither:'Wither',
+  ender_dragon:'Enderdrache',shulker:'Shulker',silverfish:'Silberfischchen',endermite:'Endermite',breeze:'Böe',creaking:'Knarz',bee:'Biene',
+  wolf:'Wolf',iron_golem:'Eisengolem',polar_bear:'Eisbär',llama:'Lama',goat:'Ziege',pufferfish:'Kugelfisch',dolphin:'Delfin',panda:'Panda',
+  tnt:'TNT',arrow:'Pfeil',trident:'Dreizack',fireball:'Feuerball',small_fireball:'Feuerball'};
+const mob = k => MOBS[k] || (k ? k.replace(/_/g,' ') : 'etwas');
+
+// cause -> [award title, how it happened]
+const CAUSES = {
+  LAVA:['Lavabader','ist in Lava geschwommen'], FALL:['Schwerkraft-Opfer','hat den Boden unterschätzt'],
+  VOID:['Ab ins Nichts','ist ins Void gefallen'], DROWNING:['Fischfutter','hat vergessen aufzutauchen'],
+  ENTITY_EXPLOSION:['Creeper-Kuschler','wurde weggesprengt'], BLOCK_EXPLOSION:['Sprengmeister','ist in die Luft geflogen'],
+  FIRE:['Grillgut','ist verbrannt'], FIRE_TICK:['Grillgut','ist verbrannt'], CAMPFIRE:['Lagerfeuer-Romantiker','hat sich aufs Lagerfeuer gesetzt'],
+  HOT_FLOOR:['Magma-Tänzer','hat auf Magma getanzt'], SUFFOCATION:['Eingemauert','ist in einer Wand erstickt'],
+  STARVATION:['Essen vergessen','ist verhungert'], FLY_INTO_WALL:['Bruchpilot','ist mit der Elytra gegen eine Wand geflogen'],
+  CONTACT:['Kaktus-Umarmer','hat sich an etwas Stacheligem zu Tode gekuschelt'], FREEZE:['Eiszapfen','ist im Pulverschnee erfroren'],
+  LIGHTNING:['Blitzableiter','wurde vom Blitz getroffen'], ENTITY_ATTACK:['Mob-Futter','wurde erledigt'],
+  ENTITY_SWEEP_ATTACK:['Mob-Futter','wurde erledigt'], PROJECTILE:['Zielscheibe','wurde abgeschossen'],
+  MAGIC:['Trank-Pech','ist an Magie gestorben'], POISON:['Vergiftet','wurde vergiftet'], WITHER:['Verwelkt','ist verwelkt'],
+  FALLING_BLOCK:['Amboss-Kopf','wurde von einem Block erschlagen'], SONIC_BOOM:['Warden-Wecker','hat den Wärter geweckt'],
+  DRAGON_BREATH:['Drachenatem','hat Drachenatem eingeatmet'], CRAMMING:['Gedränge','wurde zerquetscht'],
+  PVP:['PvP-Opfer','wurde getötet'], KILL:['/kill','hat /kill benutzt'], SUICIDE:['/kill','hat aufgegeben'], UNKNOWN:['Mysteriös','ist gestorben']
+};
+const cause = c => CAUSES[c] || [c.replace(/_/g,' ').toLowerCase(), 'ist gestorben'];
+function deathText(d){
+  const [, how] = cause(d.cause);
+  if (d.by && (d.cause==='PVP')) return `wurde von ${esc(d.by)} getötet`;
+  if (d.by && ['ENTITY_ATTACK','ENTITY_SWEEP_ATTACK','PROJECTILE','ENTITY_EXPLOSION','MAGIC','SONIC_BOOM'].includes(d.cause))
+    return `${how.replace(/^wurde/,'wurde von ' + esc(mob(d.by)))}`;
+  return how;
+}
+
+function head(p, cls){
+  const name = p?.name ?? '?';
+  if (!p?.uuid) return `<span class="ph ${cls||''}">${esc(name[0])}</span>`;
+  return `<img class="head ${cls||''}" alt="" loading="lazy" src="https://mc-heads.net/avatar/${esc(p.uuid)}/64"
+    onerror="this.outerHTML='<span class=&quot;ph&quot;>${esc(name[0]).replace(/'/g,'')}</span>'">`;
+}
+const fmt = (v, def) => {
+  const n = Number(v||0);
+  const s = n.toLocaleString('de-DE', {minimumFractionDigits:def.dec, maximumFractionDigits:def.dec});
+  return def.unit ? `${s} ${def.unit}` : s;
+};
+const ago = ts => { const s = (Date.now()-ts)/1000;
+  if (s < 90) return 'gerade eben'; if (s < 3600) return `vor ${Math.round(s/60)} Min.`;
+  if (s < 86400) return `vor ${Math.round(s/3600)} Std.`; if (s < 86400*30) return `vor ${Math.round(s/86400)} Tagen`;
+  return new Date(ts).toLocaleDateString('de-DE'); };
+
+function ranking(key){
+  return D.data.players.map(p => ({p, v:Number(p.stats[key]||0)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
+}
+
+function renderBoard(anim){
+  $('#podium').classList.toggle('anim', !!anim);
+  const def = D.data.defs.find(d=>d.key===D.stat) || D.data.defs[0];
+  $('#picker').innerHTML = D.data.defs.map(d => `<button aria-pressed="${d.key===def.key}" data-k="${d.key}">${esc(d.label)}</button>`).join('');
+  const r = ranking(def.key);
+  if (!r.length){ $('#podium').innerHTML = '<div class="empty" style="grid-column:1/4">Hier hat noch niemand etwas geschafft.</div>'; $('#rest').innerHTML=''; return; }
+  const slot = (x, cls) => x ? `<div class="step ${cls}">${head(x.p)}<div class="who">${esc(x.p.name)}</div><div class="val">${fmt(x.v,def)}</div>
+      <div class="pillar">${cls.slice(1)}</div></div>` : `<div class="step ${cls}"></div>`;
+  $('#podium').innerHTML = slot(r[1],'p2') + slot(r[0],'p1') + slot(r[2],'p3');
+  const max = r[0].v;
+  const rest = r.slice(3, 13);
+  $('#rest').innerHTML = rest.length ? rest.map(x => `<li>${head(x.p)}<span>${esc(x.p.name)}</span><span class="v">${fmt(x.v,def)}</span>
+      <span class="bar"><i style="width:${Math.max(2, x.v/max*100)}%"></i></span></li>`).join('')
+    : '<li class="empty" style="display:block">Mehr Spieler gibt es in dieser Wertung noch nicht.</li>';
+}
+
+function renderShame(){
+  const byName = Object.fromEntries(D.data.players.map(p=>[p.name,p]));
+  const per = {}; // cause title -> name -> n
+  for (const d of D.data.deaths){
+    const t = cause(d.cause)[0];
+    (per[t] ||= {}); per[t][d.name] = (per[t][d.name]||0) + 1;
+  }
+  const cards = Object.entries(per).map(([title, m]) => {
+    const list = Object.entries(m).sort((a,b)=>b[1]-a[1]);
+    const total = list.reduce((s,x)=>s+x[1],0);
+    const how = Object.values(CAUSES).find(c=>c[0]===title)?.[1] || 'ist gestorben';
+    return {title, list, total, how};
+  }).sort((a,b)=>b.total-a.total);
+
+  // arch-enemy from vanilla stats (whole world history)
+  const mobs = {};
+  for (const p of D.data.players) for (const [k,n] of Object.entries(p.killedBy||{})){ (mobs[k] ||= {}); mobs[k][p.name] = n; }
+  const enemy = Object.entries(mobs).map(([k,m]) => [k, Object.entries(m).sort((a,b)=>b[1]-a[1]), Object.values(m).reduce((s,x)=>s+x,0)])
+    .sort((a,b)=>b[2]-a[2])[0];
+
+  let html = '';
+  if (enemy){
+    const [k, list, total] = enemy, top = list[0];
+    html += `<article class="award block">${head(byName[top[0]])}<h3>Erzfeind: ${esc(mob(k))}</h3>
+      <div class="by">hat am häufigsten zugeschlagen – <b>${total}×</b>, davon ${top[1]}× bei <b>${esc(top[0])}</b></div>
+      ${list.length>1?`<div class="runners">Auch erwischt: ${list.slice(1,4).map(x=>`${esc(x[0])} ${x[1]}×`).join(', ')}</div>`:''}</article>`;
+  }
+  html += cards.map(c => { const [name, n] = c.list[0];
+    return `<article class="award block">${head(byName[name] || {name})}<h3>${esc(c.title)}</h3>
+      <div class="by"><b>${esc(name)}</b> ${esc(c.how)} – <b>${n}×</b></div>
+      ${c.list.length>1?`<div class="runners">Dicht dahinter: ${c.list.slice(1,4).map(x=>`${esc(x[0])} ${x[1]}×`).join(', ')}</div>`:''}</article>`; }).join('');
+  $('#shame').innerHTML = html || '<div class="block empty">Noch ist niemand gestorben. Das ändert sich bestimmt bald.</div>';
+}
+
+function renderFeed(){
+  const byName = Object.fromEntries(D.data.players.map(p=>[p.name,p]));
+  const list = D.data.deaths.slice(-15).reverse();
+  $('#feed').innerHTML = list.length ? list.map(d => `<li>${head(byName[d.name]||{name:d.name})}
+      <span><b>${esc(d.name)}</b> ${deathText(d)}</span><time datetime="${new Date(d.ts).toISOString()}">${ago(d.ts)}</time></li>`).join('')
+    : '<li class="empty" style="display:block">Noch keine Tode aufgezeichnet.</li>';
+}
+
+function renderPlayers(){
+  const ps = [...D.data.players].sort((a,b)=> (b.online-a.online) || (b.stats.playtime||0)-(a.stats.playtime||0));
+  const pt = D.data.defs.find(d=>d.key==='playtime');
+  $('#players').innerHTML = ps.map(p => `<button class="pcard block" data-u="${esc(p.uuid)}">${head(p)}<span><b>${esc(p.name)}</b>
+      <span class="sub" style="display:block">${p.online?'<span class="dot"></span>online':'zuletzt '+ago(p.lastSeen)}${pt?' · '+fmt(p.stats.playtime,pt):''}</span></span></button>`).join('');
+  const on = ps.filter(p=>p.online);
+  $('#online').innerHTML = on.length ? on.map(p=>`<span class="on">${head(p)}${esc(p.name)}</span>`).join('') : 'Gerade ist niemand online.';
+}
+
+function openPlayer(uuid){
+  const p = D.data.players.find(x=>x.uuid===uuid); if (!p) return;
+  const rows = D.data.defs.map(d => { const r = ranking(d.key).findIndex(x=>x.p.uuid===uuid);
+    return `<span>${esc(d.label)}</span><span>${fmt(p.stats[d.key],d)}${r>=0?`<span class="rank">#${r+1}</span>`:''}</span>`; }).join('');
+  const mine = D.data.deaths.filter(d=>d.name===p.name);
+  const worst = Object.entries(mine.reduce((m,d)=>(m[cause(d.cause)[0]]=(m[cause(d.cause)[0]]||0)+1,m),{})).sort((a,b)=>b[1]-a[1])[0];
+  const enemy = Object.entries(p.killedBy||{}).sort((a,b)=>b[1]-a[1])[0];
+  $('#dlg').innerHTML = `<div class="dhead">${head(p)}<div><h3 id="dname">${esc(p.name)}</h3>
+      <div class="sub" style="color:var(--mute)">${p.online?'gerade online':'zuletzt online '+ago(p.lastSeen)}</div></div>
+      <button class="close" aria-label="Schließen">✕</button></div>
+    <div class="grid2">${rows}
+      ${enemy?`<span>Erzfeind</span><span>${esc(mob(enemy[0]))} (${enemy[1]}×)</span>`:''}
+      ${worst?`<span>Häufigste Todesart</span><span>${esc(worst[0])} (${worst[1]}×)</span>`:''}</div>`;
+  $('#dlg').showModal();
+}
+
+async function load(){
+  try{
+    const r = await fetch('api/data', {cache:'no-store'});
+    D.data = await r.json();
+    document.title = D.data.serverName + ' – Statistik';
+    $('#title').textContent = D.data.serverName;
+    renderBoard(!D.shown); D.shown = true; renderShame(); renderFeed(); renderPlayers();
+    $('#foot').textContent = 'Stand: ' + new Date(D.data.generated).toLocaleTimeString('de-DE') + ' · aktualisiert sich automatisch';
+  }catch(e){ $('#foot').textContent = 'Der Server ist gerade nicht erreichbar. Die Seite versucht es gleich nochmal.'; }
+}
+
+$('#picker').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; D.stat = b.dataset.k; renderBoard(true); });
+$('#players').addEventListener('click', e => { const b = e.target.closest('[data-u]'); if (b) openPlayer(b.dataset.u); });
+$('#dlg').addEventListener('click', e => { if (e.target.closest('.close') || e.target === $('#dlg')) $('#dlg').close(); });
+load(); setInterval(load, 30000);
+</script>
+</body>
+</html>

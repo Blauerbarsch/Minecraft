@@ -1,0 +1,700 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Web-Konsole</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --obsidian:#15121c; --panel:#1d1927; --panel-2:#262034; --line:#352d47; --text:#ece7f5; --mute:#9b93b0;
+  --glow:#a66cff; --glow-deep:#6b3fd0; --warn:#f2b53a; --err:#ff6676; --ok:#5ad68f;
+  --sans:'IBM Plex Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,Consolas,'Courier New',monospace;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--obsidian);color:var(--text);font:14px/1.5 var(--sans)}
+:focus-visible{outline:2px solid var(--glow);outline-offset:2px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;background:var(--panel-2);border:1px solid var(--line);border-radius:6px;padding:6px 12px}
+button:hover{border-color:var(--glow)}
+button.primary{background:var(--glow-deep);border-color:var(--glow);color:#fff}
+button.danger:hover{border-color:var(--err);color:var(--err)}
+input,select{background:var(--obsidian);border:1px solid var(--line);border-radius:6px;padding:7px 10px}
+input:focus,select:focus{border-color:var(--glow);outline:none}
+body:not([data-role=admin]) .admin-only{display:none!important}
+body:not([data-role=member]) .member-only{display:none!important}
+
+/* ---------- login ---------- */
+#login{min-height:100%;display:grid;place-items:center;padding:24px 16px;
+  background:radial-gradient(600px 400px at 50% 40%, rgba(166,108,255,.13), transparent 70%)}
+.login-card{width:100%;max-width:360px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:28px}
+.login-card h1{font-size:22px;margin:0 0 4px;font-weight:600}
+.login-card p{margin:0 0 22px;color:var(--mute)}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:14px}
+.field label{font-weight:500}
+.login-card button{width:100%;padding:9px;margin-top:6px}
+.login-card .err,.err{color:var(--err);margin:10px 0 0;min-height:1.5em}
+
+/* ---------- app shell ---------- */
+#app{height:100%;display:flex;flex-direction:column}
+header{display:flex;align-items:center;gap:12px 22px;flex-wrap:wrap;padding:10px 18px;border-bottom:1px solid var(--line);background:var(--panel)}
+.srv{display:flex;align-items:center;gap:9px;font-weight:600;font-size:16px}
+.live{width:9px;height:9px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 3px rgba(90,214,143,.18)}
+.live.off{background:var(--err);box-shadow:0 0 0 3px rgba(255,102,118,.2)}
+.metrics{display:flex;gap:18px;margin:0;flex-wrap:wrap}
+.metrics div{display:flex;gap:6px;align-items:baseline}
+.metrics dt{color:var(--mute);font-size:12px}
+.metrics dd{margin:0;font-weight:600;font-variant-numeric:tabular-nums}
+.metrics .warn{color:var(--warn)} .metrics .bad{color:var(--err)}
+.me{margin-left:auto;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.role{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--mute)}
+body[data-role=admin] .role{border-color:var(--glow);color:var(--glow)}
+nav.tabs{display:flex;gap:4px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--panel);overflow-x:auto;scrollbar-width:none}
+nav.tabs::-webkit-scrollbar{display:none}
+nav.tabs button{border:0;border-bottom:2px solid transparent;border-radius:0;background:none;padding:9px 12px;color:var(--mute);white-space:nowrap;flex:none}
+nav.tabs .lock{font-size:11px;margin-left:5px;color:var(--glow)}
+.frame-wrap{flex:1;min-height:0;display:flex}
+.frame-wrap{position:relative}
+.frame-wrap iframe{flex:1;width:100%;border:0;background:var(--obsidian)}
+.popout{position:absolute;right:12px;bottom:12px;background:var(--panel-2);border:1px solid var(--line);color:var(--text);
+  padding:6px 12px;border-radius:6px;text-decoration:none;font-size:13px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.popout:hover{border-color:var(--glow)}
+nav.tabs button[aria-selected=true]{color:var(--text);border-bottom-color:var(--glow)}
+
+/* ---------- console ---------- */
+.console-layout{flex:1;min-height:0;display:grid;grid-template-columns:1fr 290px;gap:14px;padding:14px 18px}
+@media (max-width:900px){.console-layout{grid-template-columns:1fr;overflow:auto} .term{height:72vh}}
+.term{display:flex;flex-direction:column;min-height:0;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden;position:relative}
+.tbar{display:flex;gap:8px;padding:8px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.tbar input{flex:1;min-width:140px}
+.log{flex:1;min-height:0;overflow:auto;padding:8px 0;font:13px/1.55 var(--mono);background:var(--obsidian)}
+.l{padding:0 12px;white-space:pre-wrap;word-break:break-word}
+.l:hover{background:rgba(255,255,255,.03)}
+.l .ts{color:#6f6785;margin-right:8px}
+.l .th{color:#6f6785;margin-right:6px}
+.lv-warn{color:var(--warn)} .lv-error{color:var(--err)}
+.lv-web{color:#c9a8ff}
+.l.marker{color:var(--mute);text-align:center}
+#jump{position:absolute;left:50%;transform:translateX(-50%);bottom:72px;background:var(--glow-deep);border-color:var(--glow);color:#fff;border-radius:99px;box-shadow:0 4px 16px rgba(0,0,0,.4)}
+.prompt{display:flex;align-items:center;gap:8px;padding:10px;border-top:1px solid var(--line);background:var(--panel)}
+.prompt .caret{font:500 16px var(--mono);color:var(--glow);padding-left:4px}
+.prompt input{flex:1;font-family:var(--mono);background:var(--obsidian)}
+.prompt input:focus{box-shadow:0 0 0 3px rgba(166,108,255,.22)}
+@media (max-width:520px){
+  .prompt{flex-wrap:wrap}
+  .prompt .caret{display:none}
+  .prompt input{flex-basis:100%;order:-1}
+  .prompt button.primary{margin-left:auto}
+  .menu{bottom:106px}
+  #jump{bottom:116px}
+}
+.readonly{margin:0;padding:12px 14px;border-top:1px solid var(--line);color:var(--mute);background:var(--panel)}
+
+aside{display:flex;flex-direction:column;gap:14px;min-height:0;overflow:auto}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.card h2{font-size:13px;font-weight:600;margin:0 0 8px;display:flex;justify-content:space-between;color:var(--text)}
+.card h2 span{color:var(--mute);font-weight:400}
+#spark{width:100%;height:64px;display:block}
+.players{list-style:none;margin:0;padding:0}
+.players li{display:flex;justify-content:space-between;gap:8px;padding:5px 0;border-top:1px solid var(--line)}
+.players li:first-child{border-top:0}
+.players small{color:var(--mute)}
+/* ---------- command menu ---------- */
+#menuBtn{white-space:nowrap}
+#menuBtn[aria-expanded=true]{border-color:var(--glow);color:var(--glow)}
+.menu{position:absolute;left:10px;bottom:62px;width:min(440px,calc(100% - 20px));max-height:min(70%,560px);overflow:auto;
+  background:var(--panel-2);border:1px solid var(--glow-deep);border-radius:10px;box-shadow:0 12px 40px rgba(0,0,0,.55);padding:6px 0;z-index:5}
+.menu h3{font-size:12px;font-weight:600;color:var(--mute);margin:10px 14px 4px}
+.menu .item{display:block;width:100%;text-align:left;border:0;border-radius:0;background:none;padding:7px 14px}
+.menu .item:hover,.menu .item:focus-visible{background:rgba(166,108,255,.14);outline:none}
+.menu .item small{display:block;font:12px var(--mono);color:var(--mute);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.menu .item .warn-dot{color:var(--warn);margin-left:6px;font-size:12px}
+.builder{padding:6px 14px 12px}
+.builder .back{border:0;background:none;padding:4px 0;color:var(--mute)}
+.builder .back:hover{color:var(--text)}
+.builder h4{margin:4px 0 12px;font-size:16px;font-weight:600}
+.builder .field input,.builder .field select{width:100%}
+.builder .preview{font:13px var(--mono);background:var(--obsidian);border:1px solid var(--line);border-radius:6px;padding:8px 10px;margin:4px 0 12px;word-break:break-all}
+.builder .preview .miss{color:var(--warn)}
+.builder .row{justify-content:flex-start;flex-wrap:wrap}
+.builder .hint{color:var(--mute);font-size:12.5px;margin:-6px 0 10px}
+.info{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;margin:0}
+.info dt{color:var(--mute)} .info dd{margin:0;text-align:right}
+.muted{color:var(--mute)}
+
+/* ---------- accounts ---------- */
+.accounts{flex:1;overflow:auto;padding:18px}
+.accounts .inner{max-width:820px}
+.accounts h2{font-size:18px;margin:0 0 4px;font-weight:600}
+.accounts p.lead{margin:0 0 16px;color:var(--mute)}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+th,td{text-align:left;padding:10px 12px;border-top:1px solid var(--line)}
+th{font-weight:500;color:var(--mute);border-top:0;font-size:13px}
+td.act{text-align:right;white-space:nowrap}
+td.act button{margin-left:6px}
+@media (max-width:640px){
+  table,tbody,tr,td{display:block;width:100%} thead{display:none}
+  tr{border-top:1px solid var(--line);padding:6px 0} td{border:0;padding:4px 12px} td.act{text-align:left} td.act button{margin:4px 6px 0 0}
+}
+.newacc{display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:22px 0 0;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px}
+.newacc .field{margin:0}
+.secret{margin:16px 0 0;padding:14px;border:1px solid var(--glow);background:rgba(166,108,255,.08);border-radius:10px}
+.secret code{font:500 16px var(--mono);background:var(--obsidian);padding:3px 8px;border-radius:5px;margin:0 6px;user-select:all}
+
+dialog{background:var(--panel);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:22px;width:min(380px,calc(100% - 32px))}
+dialog::backdrop{background:rgba(8,6,12,.7)}
+dialog h2{margin:0 0 14px;font-size:18px;font-weight:600}
+.row{display:flex;gap:8px;justify-content:flex-end;margin-top:8px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);padding:9px 14px;border-radius:8px;max-width:calc(100% - 32px);box-shadow:0 6px 24px rgba(0,0,0,.45)}
+#toast.bad{border-color:var(--err);color:var(--err)}
+</style>
+</head>
+<body>
+
+<section id="login" hidden>
+  <form class="login-card" id="loginForm">
+    <h1 id="loginTitle">Web-Konsole</h1>
+    <p>Melde dich mit deinem Konto an.</p>
+    <div class="field"><label for="lu">Benutzername</label><input id="lu" autocomplete="username" required></div>
+    <div class="field"><label for="lp">Passwort</label><input id="lp" type="password" autocomplete="current-password" required></div>
+    <button class="primary" id="lb">Anmelden</button>
+    <p class="err" id="lerr" role="alert"></p>
+  </form>
+</section>
+
+<div id="app" hidden>
+  <header>
+    <div class="srv"><span class="live" id="live" title="Verbindung"></span><span id="srvName">Server</span></div>
+    <dl class="metrics">
+      <div><dt>TPS</dt><dd id="mTps">–</dd></div>
+      <div><dt>MSPT</dt><dd id="mMspt">–</dd></div>
+      <div><dt>RAM</dt><dd id="mRam">–</dd></div>
+      <div><dt>Spieler</dt><dd id="mPl">–</dd></div>
+    </dl>
+    <div class="me">
+      <span id="meName"></span><span class="role" id="meRole"></span>
+      <button id="btnPw">Passwort ändern</button>
+      <button id="btnOut">Abmelden</button>
+    </div>
+  </header>
+
+  <nav class="tabs" role="tablist" id="tabs">
+    <button role="tab" data-tab="console" aria-selected="true">Konsole</button>
+    <button role="tab" data-tab="accounts" aria-selected="false" class="admin-only" id="accTab">Konten</button>
+  </nav>
+
+  <main class="console-layout" id="tab-console">
+    <section class="term">
+      <div class="tbar">
+        <input id="filter" placeholder="Log durchsuchen" aria-label="Log durchsuchen">
+        <select id="level" aria-label="Zeilen">
+          <option value="all">Alle Zeilen</option>
+          <option value="warn">Nur Warnungen und Fehler</option>
+          <option value="web">Nur Web-Aktionen</option>
+        </select>
+        <button id="clear" title="Leert nur deine Ansicht">Ansicht leeren</button>
+      </div>
+      <div class="log" id="log" role="log" aria-label="Server-Konsole"></div>
+      <button id="jump" hidden>Zu den neuen Zeilen</button>
+      <div class="menu admin-only" id="menu" hidden></div>
+      <datalist id="onlinePlayers"></datalist>
+      <form class="prompt admin-only" id="cmdForm" autocomplete="off">
+        <button type="button" id="menuBtn" aria-haspopup="true" aria-expanded="false" aria-controls="menu">Befehle ▾</button>
+        <span class="caret" aria-hidden="true">&gt;</span>
+        <input id="cmd" spellcheck="false" placeholder="Befehl, z. B. say Hallo" aria-label="Befehl">
+        <button class="primary">Ausführen</button>
+      </form>
+      <p class="readonly member-only">Du hast Lesezugriff. Befehle können nur Admins ausführen.</p>
+    </section>
+
+    <aside>
+      <div class="card">
+        <h2>Tick-Rate <span>letzte 5 Min.</span></h2>
+        <svg id="spark" viewBox="0 0 260 64" preserveAspectRatio="none" role="img" aria-label="TPS-Verlauf"></svg>
+      </div>
+      <div class="card">
+        <h2>Online <span id="plCount"></span></h2>
+        <ul class="players" id="players"></ul>
+      </div>
+      <div class="card">
+        <h2>Server</h2>
+        <dl class="info" id="info"></dl>
+      </div>
+    </aside>
+  </main>
+
+  <main class="accounts" id="tab-accounts" hidden>
+    <div class="inner">
+      <h2>Konten</h2>
+      <p class="lead">Admins können Befehle ausführen und Konten verwalten. Member sehen nur die Konsole.</p>
+      <table>
+        <thead><tr><th>Name</th><th>Rolle</th><th>Angelegt</th><th></th></tr></thead>
+        <tbody id="accRows"></tbody>
+      </table>
+      <div class="secret" id="secret" hidden></div>
+      <form class="newacc" id="newAcc">
+        <div class="field"><label for="naName">Neues Konto</label><input id="naName" placeholder="Name" required pattern="[A-Za-z0-9_.\-]{2,24}" title="2–24 Zeichen: Buchstaben, Zahlen, _ . -"></div>
+        <div class="field"><label for="naRole">Rolle</label>
+          <select id="naRole"><option value="member">Member (nur ansehen)</option><option value="admin">Admin (Befehle + Konten)</option></select></div>
+        <button class="primary">Konto anlegen</button>
+      </form>
+    </div>
+  </main>
+  <div id="frames" style="display:contents"></div>
+</div>
+
+<dialog id="pwDlg" aria-labelledby="pwTitle">
+  <form id="pwForm">
+    <h2 id="pwTitle">Passwort ändern</h2>
+    <div class="field"><label for="pwOld">Aktuelles Passwort</label><input id="pwOld" type="password" autocomplete="current-password" required></div>
+    <div class="field"><label for="pwNew">Neues Passwort</label><input id="pwNew" type="password" autocomplete="new-password" minlength="8" required></div>
+    <div class="field"><label for="pwNew2">Neues Passwort wiederholen</label><input id="pwNew2" type="password" autocomplete="new-password" minlength="8" required></div>
+    <p class="err" id="pwErr" role="alert"></p>
+    <div class="row"><button type="button" id="pwCancel">Abbrechen</button><button class="primary">Passwort ändern</button></div>
+  </form>
+</dialog>
+
+<div id="toast" role="status" hidden></div>
+
+<script>
+const $ = s => document.querySelector(s);
+const S = { me:null, last:0, follow:true, stops:[], hist:[], hi:-1, prevLevel:'info', menu:[], menuKey:'', modules:[], modKey:'', tab:'console', players:[] };
+const MAX_LINES = 3000;
+
+// ---------- api ----------
+async function api(path, body){
+  const opt = { credentials:'same-origin', headers:{} };
+  if (body !== undefined){
+    opt.method = 'POST';
+    opt.headers['Content-Type'] = 'application/json';
+    opt.headers['X-WebConsole'] = '1';
+    opt.body = JSON.stringify(body);
+  }
+  const r = await fetch(path, opt);
+  let d = {}; try { d = await r.json(); } catch {}
+  if (r.status === 401 && path !== 'api/login'){ toLogin(); throw new Error('login'); }
+  if (!r.ok) throw new Error(d.error || ('Fehler ' + r.status));
+  return d;
+}
+let toastTimer;
+function toast(msg, bad){
+  const t = $('#toast'); t.textContent = msg; t.className = bad ? 'bad' : ''; t.hidden = false;
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.hidden = true, 3500);
+}
+function loop(fn, ms){
+  let stop = false;
+  const run = async () => { if (stop) return; try { await fn(); } catch(e){} if (!stop) setTimeout(run, ms); };
+  run(); return () => stop = true;
+}
+
+// ---------- login / session ----------
+function toLogin(){
+  S.stops.forEach(f => f()); S.stops = []; S.me = null;
+  document.body.dataset.role = ''; $('#frames').textContent = ''; S.modKey = '';
+  $('#app').hidden = true; $('#login').hidden = false;
+  document.title = 'Web-Konsole – Anmelden';
+  setTimeout(() => $('#lu').focus(), 0);
+}
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('#lerr').textContent = ''; $('#lb').disabled = true; $('#lb').textContent = 'Wird geprüft …';
+  try {
+    await api('api/login', { user: $('#lu').value.trim(), pass: $('#lp').value });
+    $('#lp').value = '';
+    await start();
+  } catch(x){ $('#lerr').textContent = x.message; }
+  finally { $('#lb').disabled = false; $('#lb').textContent = 'Anmelden'; }
+});
+async function start(){
+  const me = await api('api/me');
+  S.me = me; document.body.dataset.role = me.role;
+  $('#login').hidden = true; $('#app').hidden = false;
+  $('#meName').textContent = me.name;
+  $('#meRole').textContent = me.role === 'admin' ? 'Admin' : 'Member';
+  try { S.hist = JSON.parse(localStorage.getItem('wc_hist_' + me.name) || '[]'); } catch { S.hist = []; }
+  S.last = 0; $('#log').textContent = ''; S.follow = true; S.menuKey = ''; S.modKey = '';
+  $('#frames').textContent = '';
+  await loadModules().catch(() => {});
+  showTab(tabFromHash());
+  S.stops = [loop(pollConsole, 1000), loop(pollStatus, 2000), loop(loadModules, 30000)];
+}
+$('#btnOut').addEventListener('click', async () => { try { await api('api/logout', {}); } catch {} toLogin(); });
+
+// ---------- console ----------
+const RE = /^(\[\d{2}:\d{2}:\d{2}(?:\s[A-Z]+)?\])\s(?:\[([^\]]*?)\/(INFO|WARN|WARNING|ERROR|FATAL|DEBUG)\]:?\s?)?([\s\S]*)$/;
+function lineEl(t){
+  const div = document.createElement('div'); div.className = 'l';
+  if (t.startsWith('—— ')){ div.classList.add('marker'); div.textContent = t; return div; }
+  const m = RE.exec(t);
+  let lvl = 'info', msg = t;
+  if (m){
+    const L = m[3];
+    lvl = L === 'WARN' || L === 'WARNING' ? 'warn' : (L === 'ERROR' || L === 'FATAL') ? 'error' : 'info';
+    const ts = document.createElement('span'); ts.className = 'ts'; ts.textContent = m[1]; div.appendChild(ts);
+    if (m[2] && m[2] !== 'Server thread'){ const th = document.createElement('span'); th.className = 'th'; th.textContent = m[2]; div.appendChild(th); }
+    msg = m[4];
+  } else {
+    lvl = S.prevLevel; // no timestamp: continuation of the previous message (e.g. a stack trace)
+  }
+  S.prevLevel = lvl;
+  if (/\[WebConsole\] \[Web\] /.test(msg)) div.classList.add('lv-web');
+  div.classList.add('lv-' + lvl);
+  div.appendChild(document.createTextNode(msg));
+  return div;
+}
+function visible(el){
+  const f = $('#filter').value.trim().toLowerCase(), lv = $('#level').value;
+  if (lv === 'warn' && !(el.classList.contains('lv-warn') || el.classList.contains('lv-error'))) return false;
+  if (lv === 'web' && !el.classList.contains('lv-web')) return false;
+  return !f || el.textContent.toLowerCase().includes(f);
+}
+function refilter(){ for (const el of $('#log').children) el.hidden = !visible(el); if (S.follow) toBottom(); }
+function toBottom(){ const l = $('#log'); l.scrollTop = l.scrollHeight; }
+async function pollConsole(){
+  try {
+    const d = await api('api/console?since=' + S.last);
+    $('#live').classList.remove('off');
+    const log = $('#log');
+    if (d.reset) log.textContent = '';
+    if (d.lines.length){
+      const frag = document.createDocumentFragment();
+      for (const l of d.lines){ const el = lineEl(l.t); el.hidden = !visible(el); frag.appendChild(el); }
+      log.appendChild(frag);
+      while (log.childElementCount > MAX_LINES) log.firstElementChild.remove();
+      if (S.follow) toBottom(); else $('#jump').hidden = false;
+    }
+    S.last = d.last;
+  } catch(e){ if (e.message !== 'login') $('#live').classList.add('off'); throw e; }
+}
+$('#log').addEventListener('scroll', () => {
+  const l = $('#log');
+  S.follow = l.scrollTop + l.clientHeight >= l.scrollHeight - 40;
+  if (S.follow) $('#jump').hidden = true;
+});
+$('#jump').addEventListener('click', () => { S.follow = true; toBottom(); $('#jump').hidden = true; });
+$('#filter').addEventListener('input', refilter);
+$('#level').addEventListener('change', refilter);
+$('#clear').addEventListener('click', () => { $('#log').textContent = ''; });
+
+// ---------- commands ----------
+async function send(cmd){
+  try {
+    await api('api/command', { command: cmd });
+    S.hist = [cmd, ...S.hist.filter(h => h !== cmd)].slice(0, 50); S.hi = -1;
+    try { localStorage.setItem('wc_hist_' + S.me.name, JSON.stringify(S.hist)); } catch {}
+    S.follow = true; toBottom();
+    return true;
+  } catch(x){ if (x.message !== 'login') toast(x.message, true); return false; }
+}
+$('#cmdForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const v = $('#cmd').value.trim(); if (!v) return;
+  if (await send(v)) $('#cmd').value = '';
+});
+$('#cmd').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+  e.preventDefault();
+  S.hi = e.key === 'ArrowUp' ? Math.min(S.hist.length - 1, S.hi + 1) : Math.max(-1, S.hi - 1);
+  $('#cmd').value = S.hi < 0 ? '' : S.hist[S.hi];
+});
+
+// ---------- status ----------
+const gb = b => (b / 1073741824).toLocaleString('de-DE', { maximumFractionDigits: 1, minimumFractionDigits: 1 });
+function dur(ms){ let s = Math.floor(ms / 1000); const d = Math.floor(s / 86400); s %= 86400; const h = Math.floor(s / 3600); const m = Math.floor(s % 3600 / 60);
+  return d ? `${d} T ${h} Std` : h ? `${h} Std ${m} Min` : `${m} Min`; }
+const GM = { survival:'Survival', creative:'Creative', adventure:'Adventure', spectator:'Zuschauer' };
+async function pollStatus(){
+  const s = await api('api/status');
+  $('#srvName').textContent = s.serverName; $('#loginTitle').textContent = s.serverName;
+  document.title = s.serverName + ' – Konsole';
+  const tps = $('#mTps'); tps.textContent = s.tps.toLocaleString('de-DE', { minimumFractionDigits:1, maximumFractionDigits:1 });
+  tps.className = s.tps < 15 ? 'bad' : s.tps < 18.5 ? 'warn' : '';
+  $('#mMspt').textContent = s.mspt.toLocaleString('de-DE', { maximumFractionDigits:1 }) + ' ms';
+  $('#mMspt').className = s.mspt > 50 ? 'bad' : s.mspt > 40 ? 'warn' : '';
+  $('#mRam').textContent = `${gb(s.memUsed)} / ${gb(s.memMax)} GB`;
+  $('#mPl').textContent = `${s.players.length} / ${s.maxPlayers}`;
+  $('#plCount').textContent = s.players.length ? s.players.length + ' Spieler' : '';
+  const ul = $('#players'); ul.textContent = '';
+  if (!s.players.length){ const li = document.createElement('li'); li.className = 'muted'; li.textContent = 'Gerade ist niemand online.'; ul.appendChild(li); }
+  for (const p of s.players){
+    const li = document.createElement('li');
+    const a = document.createElement('span'); a.textContent = p.name;
+    const b = document.createElement('small'); b.textContent = `${GM[p.gm] || p.gm} · ${p.ping} ms`;
+    li.append(a, b); ul.appendChild(li);
+  }
+  // sparkline
+  const h = s.tpsHistory, W = 260, H = 64;
+  if (h.length > 1){
+    const x = i => i / (h.length - 1) * W, y = v => H - 3 - Math.max(0, Math.min(20, v)) / 20 * (H - 6);
+    const pts = h.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+    const low = Math.min(...h);
+    const col = low < 15 ? 'var(--err)' : low < 18.5 ? 'var(--warn)' : 'var(--glow)';
+    $('#spark').innerHTML = `<line x1="0" x2="${W}" y1="${y(20)}" y2="${y(20)}" stroke="var(--line)" stroke-dasharray="3 4"/>
+      <polygon points="0,${H} ${pts} ${W},${H}" fill="${col}" opacity=".12"/>
+      <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+  }
+  const info = $('#info'); info.textContent = '';
+  for (const [k, v] of [['Version', s.version], ['Läuft seit', dur(s.uptime)]]){
+    const dt = document.createElement('dt'); dt.textContent = k; const dd = document.createElement('dd'); dd.textContent = v; info.append(dt, dd);
+  }
+  S.players = s.players.map(p => p.name);
+  const dl = $('#onlinePlayers'); dl.textContent = '';
+  for (const n of S.players){ const o = document.createElement('option'); o.value = n; dl.appendChild(o); }
+  if (s.menu){
+    const key = JSON.stringify(s.menu);
+    if (key !== S.menuKey){ S.menuKey = key; S.menu = s.menu; $('#menuBtn').hidden = !s.menu.length; }
+  }
+}
+
+// ---------- tabs ----------
+const HASH = { console:'konsole', accounts:'konten' };
+function tabFromHash(){
+  const h = decodeURIComponent(location.hash.slice(1));
+  if (h === 'konten' && S.me?.role === 'admin') return 'accounts';
+  if (h.startsWith('m-') && S.modules.some(m => 'm-' + m.id === h)) return h;
+  return 'console';
+}
+function showTab(t){
+  if (t === 'accounts' && S.me?.role !== 'admin') t = 'console';
+  if (t.startsWith('m-') && !S.modules.some(m => 'm-' + m.id === t)) t = 'console';
+  S.tab = t;
+  document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === t));
+  $('#tab-console').hidden = t !== 'console'; $('#tab-accounts').hidden = t !== 'accounts';
+  for (const f of $('#frames').children) f.hidden = f.dataset.tab !== t;
+  if (t.startsWith('m-')){
+    // create the frame the first time it is opened; afterwards it keeps its state
+    if (![...$('#frames').children].some(f => f.dataset.tab === t)){
+      const m = S.modules.find(x => 'm-' + x.id === t);
+      const wrap = document.createElement('main'); wrap.className = 'frame-wrap'; wrap.dataset.tab = t;
+      const src = m.kind === 'proxy' ? 'x/' + encodeURIComponent(m.id) + '/'
+                : m.kind === 'url' ? m.url.replace('{host}', location.hostname)
+                : 'm/' + encodeURIComponent(m.id) + '/?embed=1';
+      const fr = document.createElement('iframe'); fr.src = src; fr.title = m.title;
+      fr.setAttribute('allow', 'fullscreen');
+      wrap.appendChild(fr);
+      if (m.kind !== 'plugin'){
+        // maps are nicer full screen – offer their own window
+        const a = document.createElement('a'); a.className = 'popout'; a.href = src; a.target = '_blank'; a.rel = 'noopener';
+        a.textContent = 'In eigenem Fenster öffnen'; wrap.appendChild(a);
+      }
+      $('#frames').appendChild(wrap);
+    }
+  }
+  const want = '#' + (HASH[t] || t);
+  if (location.hash !== want) history.replaceState(null, '', want);
+  if (t === 'accounts') loadUsers().catch(() => {});
+  if (t === 'console' && S.follow) setTimeout(toBottom, 0);
+  closeMenu();
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) showTab(b.dataset.tab); });
+window.addEventListener('hashchange', () => { if (S.me) showTab(tabFromHash()); });
+
+async function loadModules(){
+  const d = await api('api/modules');
+  const key = JSON.stringify(d.modules);
+  if (key === S.modKey) return;
+  S.modKey = key; S.modules = d.modules;
+  document.querySelectorAll('#tabs button.mod').forEach(b => b.remove());
+  for (const m of d.modules){
+    const b = document.createElement('button'); b.className = 'mod'; b.setAttribute('role', 'tab'); b.dataset.tab = 'm-' + m.id;
+    b.textContent = m.title;
+    if (m.access === 'admin'){ const l = document.createElement('span'); l.className = 'lock'; l.textContent = 'Admin'; l.title = 'Nur für Admins sichtbar'; b.appendChild(l); }
+    $('#tabs').insertBefore(b, $('#accTab'));
+  }
+  // drop frames of plugins that are gone
+  for (const f of [...$('#frames').children]) if (!d.modules.some(m => 'm-' + m.id === f.dataset.tab)) f.remove();
+  if (S.tab.startsWith('m-') && !d.modules.some(m => 'm-' + m.id === S.tab)) showTab('console');
+  else document.querySelectorAll('#tabs button').forEach(b => b.setAttribute('aria-selected', b.dataset.tab === S.tab));
+}
+
+// ---------- command menu ----------
+const PH = /\{(player|text|number|choice)(?::([^}:]*))?(?::([^}]*))?\}/g;
+const PH_DEF = { player:'Spieler', text:'Text', number:'Zahl', choice:'Auswahl' };
+function phLabel(type, l){ let label = (l || PH_DEF[type]).trim(); const optional = label.endsWith('?'); if (optional) label = label.slice(0, -1).trim(); return { label, optional }; }
+function phFields(cmd){
+  const map = new Map();
+  for (const m of cmd.matchAll(PH)){
+    const { label, optional } = phLabel(m[1], m[2]); const key = m[1] + ':' + label;
+    if (!map.has(key)) map.set(key, { type:m[1], label, optional, extra:m[3] || '', key });
+  }
+  return [...map.values()];
+}
+function phTemplate(cmd){ return cmd.replace(PH, (a, t, l) => '‹' + phLabel(t, l).label + '›'); }
+function phBuild(cmd, vals){
+  return cmd.replace(PH, (a, t, l) => (vals[t + ':' + phLabel(t, l).label] || '').trim()).replace(/\s+/g, ' ').trim();
+}
+function closeMenu(){ $('#menu').hidden = true; $('#menuBtn').setAttribute('aria-expanded', 'false'); }
+function openMenu(){ renderMenuList(); $('#menu').hidden = false; $('#menuBtn').setAttribute('aria-expanded', 'true'); $('#menu').querySelector('.item')?.focus(); }
+$('#menuBtn').addEventListener('click', () => $('#menu').hidden ? openMenu() : closeMenu());
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#menu').hidden){ closeMenu(); $('#menuBtn').focus(); } });
+document.addEventListener('mousedown', e => { if (!$('#menu').hidden && !e.target.closest('#menu, #menuBtn')) closeMenu(); });
+
+function renderMenuList(){
+  const box = $('#menu'); box.textContent = '';
+  S.menu.forEach((g, gi) => {
+    const h = document.createElement('h3'); h.textContent = g.group; box.appendChild(h);
+    g.items.forEach((it, ii) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'item'; b.dataset.g = gi; b.dataset.i = ii;
+      b.append(it.label);
+      if (it.confirm){ const w = document.createElement('span'); w.className = 'warn-dot'; w.textContent = 'mit Rückfrage'; b.appendChild(w); }
+      const sm = document.createElement('small'); sm.textContent = phTemplate(it.command); b.appendChild(sm);
+      box.appendChild(b);
+    });
+  });
+}
+$('#menu').addEventListener('click', e => {
+  const b = e.target.closest('.item'); if (!b) return;
+  const it = S.menu[b.dataset.g].items[b.dataset.i];
+  const fields = phFields(it.command);
+  if (!fields.length && !it.confirm){ runMenu(it, it.command); return; }
+  renderBuilder(it, fields);
+});
+
+function renderBuilder(it, fields){
+  const box = $('#menu'); box.textContent = '';
+  const wrap = document.createElement('form'); wrap.className = 'builder'; wrap.noValidate = true;
+  const back = document.createElement('button'); back.type = 'button'; back.className = 'back'; back.textContent = '← Alle Befehle';
+  back.onclick = () => { renderMenuList(); box.querySelector('.item')?.focus(); };
+  const h = document.createElement('h4'); h.textContent = it.label;
+  wrap.append(back, h);
+  const inputs = [];
+  fields.forEach((f, i) => {
+    const fd = document.createElement('div'); fd.className = 'field';
+    const lab = document.createElement('label'); lab.htmlFor = 'mf' + i; lab.textContent = f.label + (f.optional ? ' (optional)' : '');
+    let el;
+    if (f.type === 'choice'){
+      el = document.createElement('select');
+      for (const opt of f.extra.split(',').map(x => x.trim()).filter(Boolean)){
+        const [v, l] = opt.split('='); const o = document.createElement('option'); o.value = v.trim(); o.textContent = (l || v).trim(); el.appendChild(o);
+      }
+    } else {
+      el = document.createElement('input');
+      if (f.type === 'player'){ el.setAttribute('list', 'onlinePlayers'); el.placeholder = S.players.length ? 'z. B. ' + S.players[0] : 'Spielername'; el.autocapitalize = 'off'; el.spellcheck = false; }
+      if (f.type === 'number'){ el.inputMode = 'numeric'; el.value = f.extra || ''; }
+    }
+    el.id = 'mf' + i; el.dataset.key = f.key;
+    fd.append(lab, el); wrap.appendChild(fd); inputs.push([f, el]);
+  });
+  const pv = document.createElement('div'); pv.className = 'preview'; pv.setAttribute('aria-live', 'polite');
+  const hint = document.createElement('p'); hint.className = 'hint';
+  const row = document.createElement('div'); row.className = 'row';
+  const take = document.createElement('button'); take.type = 'button'; take.textContent = 'In Eingabezeile';
+  const run = document.createElement('button'); run.className = 'primary'; run.textContent = 'Ausführen';
+  row.append(take, run); wrap.append(pv, hint, row); box.appendChild(wrap);
+
+  const values = () => Object.fromEntries(inputs.map(([f, el]) => [f.key, el.value.replace(/[\r\n]/g, ' ')]));
+  function problem(){
+    for (const [f, el] of inputs){
+      const v = el.value.trim();
+      if (!v){ if (f.optional) continue; return `„${f.label}“ fehlt noch.`; }
+      if (f.type === 'player' && /\s/.test(v)) return `„${f.label}“: Spielernamen haben keine Leerzeichen.`;
+      if (f.type === 'number' && !/^-?\d+([.,]\d+)?$/.test(v)) return `„${f.label}“ muss eine Zahl sein.`;
+    }
+    return '';
+  }
+  function update(){
+    const vals = values(); pv.textContent = '';
+    // preview with missing fields highlighted
+    let last = 0;
+    for (const m of it.command.matchAll(PH)){
+      pv.append(it.command.slice(last, m.index));
+      const { label } = phLabel(m[1], m[2]); const v = (vals[m[1] + ':' + label] || '').trim();
+      if (v) pv.append(v); else { const s = document.createElement('span'); s.className = 'miss'; s.textContent = '‹' + label + '›'; pv.appendChild(s); }
+      last = m.index + m[0].length;
+    }
+    pv.append(it.command.slice(last));
+    hint.textContent = problem();
+  }
+  wrap.addEventListener('input', update); wrap.addEventListener('change', update); update();
+  take.onclick = () => { $('#cmd').value = phBuild(it.command, values()); closeMenu(); $('#cmd').focus(); };
+  wrap.addEventListener('submit', e => {
+    e.preventDefault();
+    const p = problem(); if (p){ hint.textContent = p; return; }
+    runMenu(it, phBuild(it.command, values()));
+  });
+  (inputs[0]?.[1] || run).focus();
+}
+async function runMenu(it, cmd){
+  if (it.confirm && !confirm(`„${cmd}“ wirklich ausführen?`)) return;
+  closeMenu();
+  if (await send(cmd)) toast('Ausgeführt: ' + cmd);
+}
+
+// ---------- accounts ----------
+async function loadUsers(){
+  const d = await api('api/users');
+  const tb = $('#accRows'); tb.textContent = '';
+  for (const u of d.users){
+    const self = u.name.toLowerCase() === S.me.name.toLowerCase();
+    const tr = document.createElement('tr'); tr.dataset.name = u.name;
+    const n = document.createElement('td'); n.textContent = u.name + (self ? ' (du)' : '');
+    const r = document.createElement('td');
+    const sel = document.createElement('select'); sel.className = 'roleSel'; sel.disabled = self; sel.setAttribute('aria-label', 'Rolle von ' + u.name);
+    for (const [v, l] of [['member', 'Member'], ['admin', 'Admin']]){ const o = document.createElement('option'); o.value = v; o.textContent = l; o.selected = u.role === v; sel.appendChild(o); }
+    r.appendChild(sel);
+    const c = document.createElement('td'); c.className = 'muted'; c.textContent = u.created ? new Date(u.created).toLocaleDateString('de-DE') : '–';
+    const a = document.createElement('td'); a.className = 'act';
+    if (!self){
+      const rb = document.createElement('button'); rb.dataset.act = 'reset'; rb.textContent = 'Passwort zurücksetzen';
+      const db = document.createElement('button'); db.dataset.act = 'delete'; db.className = 'danger'; db.textContent = 'Löschen';
+      a.append(rb, db);
+    }
+    tr.append(n, r, c, a); tb.appendChild(tr);
+  }
+}
+function showSecret(name, pw){
+  const box = $('#secret'); box.textContent = '';
+  box.append('Passwort für ' + name + ':');
+  const code = document.createElement('code'); code.textContent = pw; box.appendChild(code);
+  const b = document.createElement('button'); b.textContent = 'Kopieren';
+  b.onclick = async () => { try { await navigator.clipboard.writeText(pw); b.textContent = 'Kopiert'; } catch { b.textContent = 'Bitte von Hand kopieren'; } };
+  box.appendChild(b);
+  const p = document.createElement('p'); p.className = 'muted'; p.style.margin = '8px 0 0';
+  p.textContent = 'Wird nur jetzt angezeigt. Gib es direkt weiter – ändern kann man es nach dem Login selbst.';
+  box.appendChild(p); box.hidden = false;
+}
+$('#accRows').addEventListener('change', async e => {
+  const sel = e.target.closest('.roleSel'); if (!sel) return;
+  const name = sel.closest('tr').dataset.name;
+  try { await api('api/users', { action:'role', name, role: sel.value }); toast(`${name} ist jetzt ${sel.value === 'admin' ? 'Admin' : 'Member'}.`); }
+  catch(x){ toast(x.message, true); }
+  loadUsers().catch(() => {});
+});
+$('#accRows').addEventListener('click', async e => {
+  const b = e.target.closest('button[data-act]'); if (!b) return;
+  const name = b.closest('tr').dataset.name;
+  if (b.dataset.act === 'delete' && !confirm(`Konto „${name}“ wirklich löschen?`)) return;
+  if (b.dataset.act === 'reset' && !confirm(`Neues Passwort für „${name}“ erzeugen? Das alte gilt dann nicht mehr.`)) return;
+  try {
+    const d = await api('api/users', { action: b.dataset.act, name });
+    if (d.password) showSecret(name, d.password); else { $('#secret').hidden = true; toast(`Konto „${name}“ gelöscht.`); }
+  } catch(x){ toast(x.message, true); }
+  loadUsers().catch(() => {});
+});
+$('#newAcc').addEventListener('submit', async e => {
+  e.preventDefault();
+  const name = $('#naName').value.trim(), role = $('#naRole').value;
+  try { const d = await api('api/users', { action:'create', name, role }); showSecret(name, d.password); $('#naName').value = ''; loadUsers(); }
+  catch(x){ toast(x.message, true); }
+});
+
+// ---------- password ----------
+$('#btnPw').addEventListener('click', () => { $('#pwForm').reset(); $('#pwErr').textContent = ''; $('#pwDlg').showModal(); });
+$('#pwCancel').addEventListener('click', () => $('#pwDlg').close());
+$('#pwForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if ($('#pwNew').value !== $('#pwNew2').value){ $('#pwErr').textContent = 'Die neuen Passwörter sind nicht gleich.'; return; }
+  try {
+    await api('api/password', { old: $('#pwOld').value, new: $('#pwNew').value });
+    $('#pwDlg').close(); toast('Passwort geändert. Andere Geräte wurden abgemeldet.');
+  } catch(x){ $('#pwErr').textContent = x.message; }
+});
+
+// ---------- boot ----------
+start().catch(() => toLogin());
+</script>
+</body>
+</html>

@@ -1,0 +1,10 @@
+name: ServerStats
+version: 1.2.0
+main: dev.serverstats.ServerStatsPlugin
+api-version: '1.21'
+description: Statistik-Seite mit Bestenlisten und Wall of Shame
+author: lucagum
+commands:
+  stats:
+    description: Zeigt deine Statistik (oder die eines Spielers)
+    usage: /stats [Spieler]

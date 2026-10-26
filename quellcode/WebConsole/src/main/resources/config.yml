@@ -1,0 +1,135 @@
+# ============================================================
+#  WebConsole – Server-Konsole und gemeinsames Dashboard
+#  Nach Änderungen den Server neu starten.
+#
+#  Beim ersten Start wird das Konto "admin" mit einem zufälligen
+#  Passwort angelegt – es steht einmalig in der Server-Konsole.
+#  Weitere Konten im Tab "Konten" oder per Konsole:
+#    webconsole add <name> <admin|member>
+# ============================================================
+
+server-name: "Unser Server"
+
+web:
+  bind: "0.0.0.0"
+  port: 8768
+
+# wie lange man eingeloggt bleibt (verlängert sich bei Nutzung)
+session-days: 14
+
+# so viele Zeilen hält die Web-Konsole vor
+log-lines: 3000
+
+# Member sehen keine IP-Adressen im Log
+mask-ips-for-members: true
+
+# Zeilen, die NIEMAND im Web sieht (z.B. Passwörter von Login-Plugins)
+hide-lines-containing:
+  - "issued server command: /login"
+  - "issued server command: /l "
+  - "issued server command: /register"
+  - "issued server command: /reg "
+  - "issued server command: /changepassword"
+
+# ------------------------------------------------------------
+#  Seiten anderer Plugins im Dashboard
+#  (OpWatch, ServerStats, WochenChallenge melden sich selbst an)
+#   member = alle mit Konto, admin = nur Admins, off = ausblenden
+# ------------------------------------------------------------
+modules:
+  opwatch: admin
+  stats: member
+  players: member
+  challenge: member
+
+# ------------------------------------------------------------
+#  Weitere Tabs, z.B. eine Live-Karte (BlueMap oder squaremap)
+#   proxy: die Karte läuft über die WebConsole -> Login nötig, nur Port 8768 muss offen sein.
+#          Dann im Karten-Plugin den Webserver auf 127.0.0.1 stellen, damit er nicht offen im Netz hängt.
+#          BlueMap Standard-Port: 8100, squaremap: 8080
+#   url:   stattdessen direkt einbetten, {host} = Adresse, über die das Dashboard geöffnet wurde
+#          z.B. url: "http://{host}:8100/"
+#   access: member = alle, admin = nur Admins, off = aus
+# ------------------------------------------------------------
+external-tabs:
+  - id: karte
+    title: "Karte"
+    proxy: "http://127.0.0.1:8100/"
+    access: member
+
+# ------------------------------------------------------------
+#  Befehlsmenü an der Eingabezeile (nur Admins)
+#  Platzhalter im Befehl werden zu Eingabefeldern:
+#    {player}               Spieler (Vorschläge: wer online ist)
+#    {player:Ziel}          Spieler mit eigener Beschriftung
+#    {text:Grund}           Text  –  mit ? am Ende optional: {text:Grund?}
+#    {number:Anzahl:64}     Zahl mit Vorgabewert
+#    {choice:Modus:survival=Survival,creative=Creative}
+#  confirm: true  -> fragt vor dem Ausführen nach
+# ------------------------------------------------------------
+command-menu:
+  - group: "Spieler"
+    items:
+      - label: "Spieler kicken"
+        command: "kick {player} {text:Grund?}"
+      - label: "Spieler bannen"
+        command: "ban {player} {text:Grund?}"
+        confirm: true
+      - label: "Spieler entbannen"
+        command: "pardon {player}"
+      - label: "Spielmodus ändern"
+        command: "gamemode {choice:Modus:survival=Survival,creative=Creative,adventure=Abenteuer,spectator=Zuschauer} {player}"
+      - label: "Zu Spieler teleportieren"
+        command: "tp {player:Wer} {player:Zu wem}"
+      - label: "Item geben"
+        command: "give {player} {text:Item (z. B. diamond)} {number:Anzahl:1}"
+      - label: "Nachricht an Spieler"
+        command: "tell {player} {text:Nachricht}"
+      - label: "Inventar leeren"
+        command: "clear {player}"
+        confirm: true
+      - label: "OP geben"
+        command: "op {player}"
+        confirm: true
+      - label: "OP entziehen"
+        command: "deop {player}"
+  - group: "Welt"
+    items:
+      - label: "Tag"
+        command: "time set day"
+      - label: "Nacht"
+        command: "time set night"
+      - label: "Wetter"
+        command: "weather {choice:Wetter:clear=Klar,rain=Regen,thunder=Gewitter}"
+      - label: "Schwierigkeit"
+        command: "difficulty {choice:Stufe:peaceful=Friedlich,easy=Einfach,normal=Normal,hard=Schwer}"
+      - label: "Herumliegende Items entfernen"
+        command: "kill @e[type=item]"
+        confirm: true
+  - group: "Server"
+    items:
+      - label: "Welt speichern"
+        command: "save-all"
+      - label: "Wer ist online?"
+        command: "list"
+      - label: "Leistung (TPS)"
+        command: "tps"
+      - label: "Nachricht an alle"
+        command: "say {text:Nachricht}"
+      - label: "Whitelist: Spieler hinzufügen"
+        command: "whitelist add {player}"
+      - label: "Whitelist an/aus"
+        command: "whitelist {choice:Status:on=An,off=Aus}"
+      - label: "Server stoppen"
+        command: "stop"
+        confirm: true
+  - group: "Wochen-Challenge"
+    items:
+      - label: "Woche jetzt auswerten"
+        command: "challenge next"
+        confirm: true
+      - label: "Challenge wechseln (ohne Wertung)"
+        command: "challenge set {text:Challenge-ID}"
+        confirm: true
+      - label: "Alle Challenge-IDs anzeigen"
+        command: "challenge list"

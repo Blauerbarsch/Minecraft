@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OpWatch</title>
+<style>
+:root{
+  --bg:#0f1115; --panel:#171a21; --panel2:#1d212a; --line:#2a2f3a; --text:#e6e8ec; --mute:#8b93a3;
+  --acc:#5fd38d; --warn:#f2b84b; --bad:#ff6b6b; --blue:#6aa8ff; --violet:#b08cff;
+  --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
+}
+/* inside the dark WebConsole dashboard always stay dark */
+@media (prefers-color-scheme: light){
+  :root:not(.embed){ --bg:#f4f5f7; --panel:#fff; --panel2:#f0f2f5; --line:#dde1e7; --text:#1b1e24; --mute:#667085;
+    --acc:#1f9d55; --warn:#b7791f; --bad:#d63939; --blue:#2f6fd6; --violet:#7a4fd6; }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+.brand{font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
+.dot.off{background:var(--bad)}
+.online{display:flex;gap:6px;flex-wrap:wrap;flex:1}
+.pill{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);white-space:nowrap;cursor:pointer}
+.pill.creative{border-color:var(--warn);color:var(--warn)}
+.pill .gm{color:var(--mute);margin-left:4px}
+button,select,input{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
+button{cursor:pointer}
+button.on{border-color:var(--acc);color:var(--acc)}
+main{display:grid;grid-template-columns:250px 1fr;gap:16px;padding:16px 20px;max-width:1500px;margin:0 auto}
+@media (max-width:860px){main{grid-template-columns:1fr;padding:12px 16px}}
+aside{display:flex;flex-direction:column;gap:14px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
+.box h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mute);font-weight:600}
+.cat{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:6px;cursor:pointer;user-select:none}
+.cat:hover{background:var(--panel2)}
+.cat.sel{background:color-mix(in srgb,var(--blue) 18%,transparent);color:var(--blue)}
+.cat .n{color:var(--mute);font-variant-numeric:tabular-nums;font-size:12px}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
+.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.tile .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile .l{font-size:12px;color:var(--mute)}
+.tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
+.tabs button.sel{background:var(--text);color:var(--bg);border-color:var(--text)}
+.toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+.toolbar input{flex:1;min-width:180px}
+.list{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.row{display:grid;grid-template-columns:130px 140px 1fr;gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);align-items:start}
+.row:last-child{border-bottom:0}
+.row:hover{background:var(--panel2)}
+@media (max-width:700px){.row{grid-template-columns:1fr}}
+.time{color:var(--mute);font-variant-numeric:tabular-nums;font-size:12px}
+.who{font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis}
+.who small{display:block;font-weight:400;color:var(--mute);font-size:11px}
+.cmd{font-family:var(--mono);font-size:13px;word-break:break-all}
+.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;margin-right:6px;border:1px solid var(--line);color:var(--mute);vertical-align:1px}
+.t-COMMAND{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,transparent)}
+.t-GAMEMODE{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 40%,transparent)}
+.t-CREATIVE{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
+.t-JOIN,.t-QUIT{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 40%,transparent)}
+.notable{box-shadow:inset 3px 0 0 var(--bad)}
+.items{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.it{font-family:var(--mono);font-size:12px;padding:2px 7px;border-radius:5px;background:var(--panel2);border:1px solid var(--line)}
+.it.n{border-color:var(--bad);color:var(--bad)}
+.sub{color:var(--mute);font-size:12px;margin-top:2px}
+.empty{padding:30px;text-align:center;color:var(--mute)}
+.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.pc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}
+.pc:hover{border-color:var(--blue)}
+.pc h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between}
+.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13px}
+.kv span:nth-child(odd){color:var(--mute)}
+.bad{color:var(--bad)} .warn{color:var(--warn)}
+a{color:var(--blue)}
+.more{display:block;width:100%;border:0;border-top:1px solid var(--line);border-radius:0;padding:10px;background:transparent;color:var(--blue)}
+</style>
+</head>
+<body>
+<header>
+  <div class="brand"><span class="dot" id="live"></span> OpWatch</div>
+  <div class="online" id="online"></div>
+  <select id="range" title="Zeitraum">
+    <option value="3600000">letzte Stunde</option>
+    <option value="today" selected>heute</option>
+    <option value="86400000">24 Stunden</option>
+    <option value="604800000">7 Tage</option>
+    <option value="0">alles geladene</option>
+  </select>
+  <button id="pause">⏸ Live</button>
+</header>
+
+<main>
+  <aside>
+    <div class="box">
+      <h3>Command-Kategorien</h3>
+      <div id="cats"></div>
+    </div>
+    <div class="box">
+      <h3>Spieler</h3>
+      <select id="player" style="width:100%"><option value="">Alle Spieler</option></select>
+    </div>
+    <div class="box">
+      <h3>Log-Dateien</h3>
+      <div id="files" class="sub"></div>
+    </div>
+  </aside>
+
+  <section>
+    <div class="tiles" id="tiles"></div>
+    <div class="tabs" id="tabs">
+      <button data-tab="all" class="sel">Alles</button>
+      <button data-tab="COMMAND">Commands</button>
+      <button data-tab="CREATIVE">Creative-Items</button>
+      <button data-tab="GAMEMODE">Gamemode</button>
+      <button data-tab="JOIN">Join / Quit</button>
+      <button data-tab="players">Spieler-Übersicht</button>
+    </div>
+    <div class="toolbar">
+      <input id="q" placeholder="Suchen (Command, Item, Spieler, Koordinaten …)">
+      <button id="onlyNotable">❗ nur Auffälliges</button>
+    </div>
+    <div id="view"></div>
+  </section>
+</main>
+
+<script>
+if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
+const S = { events: [], last: 0, cats: {}, tab: 'all', cat: null, player: '', q: '', notable: false,
+            paused: false, show: 300, online: [] };
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmtTime = ts => { const d = new Date(ts), t = new Date();
+  const hm = d.toLocaleTimeString('de-DE',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  return d.toDateString() === t.toDateString() ? hm : d.toLocaleDateString('de-DE',{day:'2-digit',month:'2-digit'}) + ' ' + hm; };
+const dur = s => s < 60 ? s + ' s' : s < 3600 ? Math.round(s/60) + ' min' : (s/3600).toFixed(1) + ' h';
+const isCreative = e => e.type && e.type.startsWith('CREATIVE');
+
+async function api(p){ const r = await fetch(p, {cache:'no-store'}); if(!r.ok) throw new Error(r.status); return r.json(); }
+
+async function poll(){
+  if (S.paused) return;
+  try{
+    const d = await api('api/events?since=' + S.last);
+    if (d.events.length){ S.events.push(...d.events); S.last = d.last; if (S.events.length > 60000) S.events.splice(0, S.events.length - 60000); render(); }
+    $('#live').classList.remove('off');
+  }catch(e){ $('#live').classList.add('off'); }
+}
+async function meta(){
+  try{
+    const m = await api('api/meta');
+    S.cats = m.categories; S.online = m.online;
+    $('#online').innerHTML = m.online.length ? m.online.map(p =>
+      `<span class="pill ${p.gm==='creative'?'creative':''}" data-p="${esc(p.name)}">${esc(p.name)}<span class="gm">${esc(p.gm)}</span></span>`).join('')
+      : '<span class="sub">niemand online</span>';
+    $('#files').innerHTML = m.files.slice(0,10).map(f => `<div><a href="api/file?name=${encodeURIComponent(f)}">${esc(f)}</a></div>`).join('') || 'noch keine';
+    if (!S.metaLoaded){ S.metaLoaded = true; render(); } else renderSide();
+  }catch(e){}
+}
+
+function inRange(e){
+  const v = $('#range').value;
+  if (v === '0') return true;
+  if (v === 'today'){ const t = new Date(); t.setHours(0,0,0,0); return e.ts >= t.getTime(); }
+  return e.ts >= Date.now() - Number(v);
+}
+function text(e){
+  return [e.player, e.command, e.detail, e.world, e.x, e.y, e.z, e.category, e.container,
+          ...(e.items||[]).map(i=>i.item), ...(e.taken||[]).map(i=>i.item)].join(' ').toLowerCase();
+}
+function base(){ return S.events.filter(e => inRange(e) && (!S.player || e.player === S.player)); }
+function filtered(){
+  const q = S.q.toLowerCase();
+  return base().filter(e => {
+    if (S.tab === 'COMMAND' && e.type !== 'COMMAND') return false;
+    if (S.tab === 'CREATIVE' && !isCreative(e)) return false;
+    if (S.tab === 'GAMEMODE' && e.type !== 'GAMEMODE') return false;
+    if (S.tab === 'JOIN' && e.type !== 'JOIN' && e.type !== 'QUIT') return false;
+    if (S.cat && (e.type !== 'COMMAND' || e.category !== S.cat)) return false;
+    if (S.notable && !e.notable) return false;
+    if (q && !text(e).includes(q)) return false;
+    return true;
+  });
+}
+
+function renderSide(){
+  const ev = base().filter(e => e.type === 'COMMAND');
+  const cnt = {}; ev.forEach(e => cnt[e.category] = (cnt[e.category]||0) + 1);
+  const keys = Object.keys(S.cats).sort((a,b)=>(cnt[b]||0)-(cnt[a]||0));
+  $('#cats').innerHTML = `<div class="cat ${!S.cat?'sel':''}" data-c=""><span>Alle Kategorien</span><span class="n">${ev.length}</span></div>` +
+    keys.map(k => `<div class="cat ${S.cat===k?'sel':''}" data-c="${esc(k)}"><span>${esc(S.cats[k])}</span><span class="n">${cnt[k]||0}</span></div>`).join('');
+  const players = [...new Set(S.events.map(e=>e.player).filter(p=>p && !p.startsWith('[')))].sort((a,b)=>a.localeCompare(b));
+  const sel = $('#player'), cur = S.player;
+  sel.innerHTML = '<option value="">Alle Spieler</option>' + players.map(p=>`<option ${p===cur?'selected':''}>${esc(p)}</option>`).join('');
+}
+
+function renderTiles(){
+  const ev = base();
+  const cmds = ev.filter(e=>e.type==='COMMAND').length;
+  const gm = ev.filter(e=>e.type==='GAMEMODE' && e.to==='creative').length;
+  const items = ev.filter(e=>e.type==='CREATIVE_ITEMS').reduce((s,e)=>s+(e.total||0),0);
+  const kept = ev.filter(e=>e.type==='CREATIVE_EXIT').reduce((s,e)=>s+(e.total||0),0);
+  const flag = ev.filter(e=>e.notable).length;
+  const t = [[cmds,'Commands'],[gm,'Wechsel zu Creative'],[items,'Items aus Creative genommen'],[kept,'Items aus Creative mitgenommen', kept?'warn':''],[flag,'auffällige Einträge', flag?'bad':'']];
+  $('#tiles').innerHTML = t.map(([v,l,c])=>`<div class="tile"><div class="v ${c||''}">${v.toLocaleString('de-DE')}</div><div class="l">${l}</div></div>`).join('');
+}
+
+function itemsHtml(list, label){
+  if (!list || !list.length) return '';
+  return (label ? `<div class="sub">${label}</div>` : '') + '<div class="items">' +
+    list.map(i=>`<span class="it ${i.notable?'n':''}">${i.amount}× ${esc(i.item)}</span>`).join('') + '</div>';
+}
+function rowHtml(e){
+  let tagCls = 't-' + (isCreative(e) ? 'CREATIVE' : e.type), tag = {COMMAND:'Command',GAMEMODE:'Gamemode',JOIN:'Join',QUIT:'Quit',
+    CREATIVE_ITEMS:'Creative-Entnahme',CREATIVE_EXIT:'Creative verlassen',CREATIVE_DROP:'Creative-Drop',CREATIVE_CONTAINER:'Creative-Kiste'}[e.type] || e.type;
+  let body = '';
+  if (e.type === 'COMMAND'){
+    body = `<span class="tag">${esc(S.cats[e.category] || e.category)}</span><span class="cmd">${esc(e.command)}</span>` +
+           (e.cancelled ? ' <span class="sub">(abgebrochen)</span>' : '');
+  } else {
+    body = `<span>${esc(e.detail || '')}</span>`;
+    if (e.type === 'CREATIVE_EXIT' && e.durationSec != null) body += ` <span class="sub">· ${dur(e.durationSec)} im Creative</span>`;
+    body += itemsHtml(e.items, e.type==='CREATIVE_CONTAINER' && e.items?.length ? 'reingelegt:' : '');
+    body += itemsHtml(e.taken, 'rausgenommen:');
+  }
+  const loc = e.world ? `${esc(e.world)} ${e.x} ${e.y} ${e.z}` : '';
+  return `<div class="row ${e.notable?'notable':''}">
+    <div class="time">${fmtTime(e.ts)}<br><span class="tag ${tagCls}">${tag}</span></div>
+    <div class="who" data-p="${esc(e.player)}">${esc(e.player)}<small>${esc(e.gm||'')}${loc?' · '+loc:''}</small></div>
+    <div>${body}</div></div>`;
+}
+
+function renderPlayers(){
+  const ev = S.events.filter(inRange), by = {};
+  for (const e of ev){
+    if (!e.player || e.player.startsWith('[')) continue;
+    const p = by[e.player] ||= {cmds:0,crea:0,taken:0,kept:0,flag:0,time:0,last:0,cats:{}};
+    p.last = Math.max(p.last, e.ts);
+    if (e.type==='COMMAND'){ p.cmds++; p.cats[e.category]=(p.cats[e.category]||0)+1; }
+    if (e.type==='GAMEMODE' && e.to==='creative') p.crea++;
+    if (e.type==='CREATIVE_ITEMS') p.taken += e.total||0;
+    if (e.type==='CREATIVE_EXIT'){ p.kept += e.total||0; p.time += e.durationSec||0; }
+    if (e.notable) p.flag++;
+  }
+  const names = Object.keys(by).sort((a,b)=>by[b].last-by[a].last);
+  if (!names.length) return '<div class="list"><div class="empty">Noch keine Daten in diesem Zeitraum.</div></div>';
+  const on = new Set(S.online.map(o=>o.name));
+  return '<div class="players">' + names.map(n => { const p = by[n];
+    const top = Object.entries(p.cats).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${esc(S.cats[k]||k)} ${v}`).join(', ') || '–';
+    return `<div class="pc" data-p="${esc(n)}"><h4>${esc(n)} <span class="sub">${on.has(n)?'🟢 online':fmtTime(p.last)}</span></h4>
+      <div class="kv"><span>Commands</span><span>${p.cmds}</span>
+      <span>Top-Kategorien</span><span style="text-align:right">${top}</span>
+      <span>Mal in Creative</span><span>${p.crea}</span>
+      <span>Zeit in Creative</span><span>${dur(p.time)}</span>
+      <span>Items aus Creative genommen</span><span class="${p.taken?'warn':''}">${p.taken}</span>
+      <span>Items mitgenommen</span><span class="${p.kept?'bad':''}">${p.kept}</span>
+      <span>Auffällig</span><span class="${p.flag?'bad':''}">${p.flag}</span></div></div>`; }).join('') + '</div>';
+}
+
+function render(){
+  renderTiles(); renderSide();
+  if (S.tab === 'players'){ $('#view').innerHTML = renderPlayers(); return; }
+  const list = filtered().reverse();
+  const shown = list.slice(0, S.show);
+  $('#view').innerHTML = '<div class="list">' + (shown.length ? shown.map(rowHtml).join('') : '<div class="empty">Keine Einträge für diesen Filter.</div>') +
+    (list.length > S.show ? `<button class="more" id="more">Weitere ${Math.min(300, list.length - S.show)} von ${list.length - S.show} laden</button>` : '') + '</div>';
+}
+
+// --- interactions
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if(!b) return;
+  document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('sel', x===b)); S.tab = b.dataset.tab; S.show = 300; render(); });
+$('#cats').addEventListener('click', e => { const c = e.target.closest('.cat'); if(!c) return; S.cat = c.dataset.c || null;
+  if (S.cat){ S.tab='COMMAND'; document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('sel', x.dataset.tab==='COMMAND')); } render(); });
+$('#player').addEventListener('change', e => { S.player = e.target.value; render(); });
+$('#q').addEventListener('input', e => { S.q = e.target.value; S.show = 300; render(); });
+$('#range').addEventListener('change', render);
+$('#onlyNotable').addEventListener('click', e => { S.notable = !S.notable; e.target.classList.toggle('on', S.notable); render(); });
+$('#pause').addEventListener('click', e => { S.paused = !S.paused; e.target.textContent = S.paused ? '▶ Pausiert' : '⏸ Live'; e.target.classList.toggle('on', S.paused); if(!S.paused) poll(); });
+document.addEventListener('click', e => {
+  if (e.target.id === 'more'){ S.show += 300; render(); return; }
+  const p = e.target.closest('[data-p]'); if (!p || p.dataset.p.startsWith('[')) return;
+  S.player = p.dataset.p; if (S.tab === 'players'){ S.tab = 'all'; document.querySelectorAll('#tabs button').forEach(x=>x.classList.toggle('sel', x.dataset.tab==='all')); }
+  render(); window.scrollTo({top:0, behavior:'smooth'});
+});
+
+meta(); poll();
+setInterval(poll, 2500); setInterval(meta, 5000);
+</script>
+</body>
+</html>

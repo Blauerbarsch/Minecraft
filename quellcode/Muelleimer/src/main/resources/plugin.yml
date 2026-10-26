@@ -1,0 +1,18 @@
+name: Muelleimer
+version: 1.0.1
+main: dev.muelleimer.MuelleimerPlugin
+api-version: '1.21'
+description: Mülleimer per /trash und als eigener Block
+author: lucagum
+commands:
+  trash:
+    description: Mülleimer öffnen, /trash undo zum Zurückholen
+    usage: /trash [undo|block]
+    aliases: [muell, muelleimer]
+permissions:
+  muelleimer.use:
+    description: Mülleimer benutzen (/trash und Block)
+    default: true
+  muelleimer.block:
+    description: Mülleimer-Blöcke per Befehl geben
+    default: op

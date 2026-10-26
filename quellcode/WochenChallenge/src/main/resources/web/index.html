@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wochen-Challenge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Rubik:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --sky-top:#5aa2ec; --sky:#9bd0ff; --grass:#5cb84a; --grass-dark:#3f8a33; --dirt:#8a5a3b; --dirt-dark:#6b432b;
+  --board:#fbfaf4; --ink:#1d2433; --mute:#5d6577; --line:#e3e0d3;
+  --gold:#f2b51d; --silver:#b9c3cf; --bronze:#c98a52; --red:#d94141; --green:#2e9e52;
+}
+*{box-sizing:border-box}
+body{margin:0;color:var(--ink);font:16px/1.5 'Rubik',system-ui,sans-serif;background:var(--dirt)}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.wrap{max-width:980px;margin:0 auto;padding:0 16px}
+h1,h2{font-family:'Bungee','Rubik',sans-serif;font-weight:400;margin:0;line-height:1.05}
+
+/* sky + grass hero */
+.hero{background:linear-gradient(var(--sky-top),var(--sky));color:#fff;padding:28px 0 0;position:relative}
+.hero .server{font-weight:700;opacity:.9}
+.hero h1{font-size:clamp(40px,8vw,84px);margin:18px 0 10px;text-shadow:4px 4px 0 rgba(20,40,80,.35);word-break:break-word}
+.hero p.desc{font-size:20px;max-width:46ch;margin:0 0 20px;text-shadow:0 1px 0 rgba(20,40,80,.25)}
+.meta{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:30px}
+.chip{background:rgba(255,255,255,.22);border:2px solid rgba(255,255,255,.55);padding:5px 12px;font-weight:500;border-radius:3px}
+.clock{display:flex;gap:10px;padding-bottom:36px}
+.clock div{background:var(--ink);color:#fff;padding:8px 12px;min-width:76px;text-align:center;box-shadow:4px 4px 0 rgba(20,40,80,.35);border-radius:3px}
+.clock b{display:block;font:400 34px/1 'Bungee',sans-serif}
+.clock span{font-size:12px;opacity:.8}
+.grass{height:28px;background:
+  linear-gradient(var(--grass) 0 60%, var(--grass-dark) 60% 75%, var(--dirt) 75%);
+  border-top:4px solid #74cf5f}
+
+main{padding:8px 0 40px;background:
+  linear-gradient(90deg, rgba(0,0,0,.06) 50%, transparent 50%) 0 0/40px 40px,
+  linear-gradient(rgba(0,0,0,.06) 50%, transparent 50%) 0 0/40px 40px, var(--dirt)}
+.board{background:var(--board);border:4px solid var(--dirt-dark);box-shadow:6px 6px 0 var(--dirt-dark);padding:22px;margin:24px 0;border-radius:3px}
+.board h2{font-size:26px;margin-bottom:4px}
+.board .lead{color:var(--mute);margin:0 0 16px}
+
+.rewards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+@media (max-width:640px){.rewards{grid-template-columns:1fr}}
+.rw{border:3px solid var(--ink);padding:12px 14px;border-radius:3px}
+.rw .pl{font:400 22px 'Bungee',sans-serif}
+.rw.r1{background:#fff3cf;border-color:#a77a07}.rw.r2{background:#eef2f6;border-color:#7b8796}.rw.r3{background:#f6e6d7;border-color:#8c5a2c}
+.rw ul{margin:6px 0 0;padding-left:18px}
+
+.rank{list-style:none;margin:0;padding:0}
+.rank li{display:grid;grid-template-columns:44px 40px 1fr auto;gap:12px;align-items:center;padding:10px 4px}
+.rank li+li{border-top:2px solid var(--line)}
+.pos{font:400 22px 'Bungee',sans-serif;text-align:center}
+.rank li:nth-child(1) .pos{color:#a77a07}.rank li:nth-child(2) .pos{color:#6b7684}.rank li:nth-child(3) .pos{color:#8c5a2c}
+.rank img,.ph{width:40px;height:40px;image-rendering:pixelated;display:grid;place-items:center;background:var(--line);font-weight:700;border-radius:2px}
+.nm{font-weight:700}
+.nm small{font-weight:400;color:var(--mute);margin-left:6px}
+.flag{display:inline-block;font-size:12px;font-weight:500;color:var(--red);border:1.5px solid var(--red);padding:0 6px;margin-left:6px;border-radius:3px;vertical-align:2px}
+.done{color:var(--green);font:700 15px 'Rubik',system-ui,sans-serif;white-space:normal}
+.u{font:500 14px 'Rubik',system-ui,sans-serif}
+.val{font:400 20px 'Bungee',sans-serif;text-align:right;white-space:nowrap}
+.bar{grid-column:3/5;height:10px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--grass)}
+.rank li:nth-child(1) .bar i{background:var(--gold)}
+.empty{color:var(--mute);text-align:center;padding:26px 8px}
+
+.hof{display:grid;grid-template-columns:1fr 1.4fr;gap:20px}
+@media (max-width:760px){.hof{grid-template-columns:1fr}}
+.tally li{grid-template-columns:44px 40px 1fr auto}
+.weeks{list-style:none;margin:0;padding:0}
+.weeks li{padding:10px 0;display:grid;grid-template-columns:1fr auto;gap:2px 12px}
+.weeks li+li{border-top:2px solid var(--line)}
+.weeks .t{font-weight:700}
+.weeks .d{color:var(--mute);font-size:14px}
+.weeks .w{grid-column:1/3;font-size:14px}
+/* inside the WebConsole dashboard the server name is already in its header */
+.embed .hero .server{display:none}
+footer{color:#f2e6da;font-size:13px;text-align:center;padding:4px 0 28px}
+</style>
+</head>
+<body>
+<section class="hero">
+  <div class="wrap">
+    <div class="server" id="server"></div>
+    <h1 id="title">Wochen-Challenge</h1>
+    <p class="desc" id="desc"></p>
+    <div class="meta" id="meta"></div>
+    <div class="clock" id="clock" aria-live="off"></div>
+  </div>
+  <div class="grass" aria-hidden="true"></div>
+</section>
+
+<main>
+  <div class="wrap">
+    <section class="board" aria-labelledby="h-rank">
+      <h2 id="h-rank">Aktueller Stand</h2>
+      <p class="lead" id="rank-lead"></p>
+      <ol class="rank" id="rank"></ol>
+    </section>
+
+    <section class="board" aria-labelledby="h-rw">
+      <h2 id="h-rw">Zu gewinnen</h2>
+      <p class="lead">Wird am Ende der Woche automatisch verteilt. Wer offline ist, bekommt es beim nächsten Einloggen.</p>
+      <div class="rewards" id="rewards"></div>
+    </section>
+
+    <section class="board" aria-labelledby="h-hof">
+      <h2 id="h-hof">Hall of Fame</h2>
+      <p class="lead">Alle bisherigen Wochen und wer am häufigsten gewonnen hat.</p>
+      <div class="hof">
+        <ol class="rank tally" id="tally"></ol>
+        <ul class="weeks" id="weeks"></ul>
+      </div>
+    </section>
+  </div>
+  <footer id="foot"></footer>
+</main>
+
+<script>
+if (new URLSearchParams(location.search).has('embed')) document.documentElement.classList.add('embed');
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let D = null, offset = 0;
+
+function head(uuid, name){
+  if (!uuid) return `<span class="ph">${esc((name||'?')[0])}</span>`;
+  return `<img alt="" loading="lazy" src="https://mc-heads.net/avatar/${esc(uuid)}/40"
+    onerror="this.outerHTML='<span class=&quot;ph&quot;>${esc((name||'?')[0]).replace(/'/g,'')}</span>'">`;
+}
+const num = (v, dec) => Number(v||0).toLocaleString('de-DE', {minimumFractionDigits:dec, maximumFractionDigits:dec});
+const date = ts => new Date(ts).toLocaleDateString('de-DE', {weekday:'long', day:'numeric', month:'long'});
+const dt = ts => new Date(ts).toLocaleString('de-DE', {weekday:'short', day:'numeric', month:'short', hour:'2-digit', minute:'2-digit'});
+
+function tickClock(){
+  if (!D?.challenge) return;
+  let s = Math.max(0, Math.floor((D.challenge.end - (Date.now() + offset)) / 1000));
+  const d = Math.floor(s/86400); s -= d*86400; const h = Math.floor(s/3600); s -= h*3600; const m = Math.floor(s/60); s -= m*60;
+  const cell = (v,l) => `<div><b>${String(v).padStart(2,'0')}</b><span>${l}</span></div>`;
+  $('#clock').innerHTML = cell(d,'Tage') + cell(h,'Stunden') + cell(m,'Minuten') + cell(s,'Sekunden');
+}
+
+function renderHero(){
+  const c = D.challenge;
+  $('#server').textContent = D.serverName;
+  document.title = c ? `${c.title} – Wochen-Challenge` : 'Wochen-Challenge';
+  $('#title').textContent = c ? c.title : 'Gerade keine Challenge';
+  $('#desc').textContent = c ? c.description : '';
+  if (!c){ $('#meta').innerHTML=''; return; }
+  const mode = c.mode === 'race' ? `Wettrennen: zuerst ${num(c.target, c.decimals)} ${esc(c.unit)}` : `Wer am Ende am meisten hat`;
+  $('#meta').innerHTML = `<span class="chip">${mode}</span><span class="chip">endet ${esc(dt(c.end))}</span>`;
+}
+
+function renderRank(){
+  const c = D.challenge, r = D.ranking || [];
+  if (!c){ $('#rank').innerHTML = ''; return; }
+  const race = c.mode === 'race';
+  $('#rank-lead').textContent = race
+    ? 'Wer das Ziel erreicht, bekommt einen Haken. Die Reihenfolge zählt.'
+    : 'Gezählt wird nur, was im Survival passiert. Creative zählt nie mit.';
+  if (!r.length){ $('#rank').innerHTML = '<li class="empty" style="display:block">Noch hat niemand gepunktet. Wer fängt an?</li>'; return; }
+  const max = race ? c.target : Math.max(...r.map(x=>x.value));
+  $('#rank').innerHTML = r.map((x,i) => {
+    const pct = Math.min(100, max ? x.value / max * 100 : 0);
+    const flag = x.creative && D.creativeRule === 'mark' ? '<span class="flag">war im Creative</span>' : '';
+    const done = race && x.finishedAt ? `<span class="done">✔ geschafft<br><small class="u" style="color:var(--mute)">${esc(dt(x.finishedAt))}</small></span>` : '';
+    return `<li><span class="pos">${i+1}</span>${head(x.uuid, x.name)}
+      <span class="nm">${esc(x.name)}${x.online?'<small>online</small>':''}${flag}</span>
+      <span class="val">${done || num(x.value, c.decimals) + (c.unit ? ' <small class="u">'+esc(c.unit)+'</small>' : '')}</span>
+      <span class="bar"><i style="width:${Math.max(2,pct)}%"></i></span></li>`;
+  }).join('');
+}
+
+function renderRewards(){
+  const rw = D.rewards || {};
+  $('#rewards').innerHTML = [1,2,3].map(i => { const l = rw[i] || [];
+    return `<div class="rw r${i}"><div class="pl">Platz ${i}</div>${l.length ? '<ul>' + l.map(x=>`<li>${esc(x)}</li>`).join('') + '</ul>' : '<div>Ruhm und Ehre</div>'}</div>`;
+  }).join('');
+}
+
+function renderHof(){
+  const h = [...(D.history || [])].reverse();
+  const wins = {};
+  for (const w of h){ const top = w.results?.[0]; if (!top) continue;
+    if (w.mode === 'race' && !top.finishedAt) continue;
+    (wins[top.name] ||= {n:0, uuid:top.uuid}).n++; }
+  const t = Object.entries(wins).sort((a,b)=>b[1].n-a[1].n);
+  $('#tally').innerHTML = t.length ? t.map(([n,x],i)=>`<li><span class="pos">${i+1}</span>${head(x.uuid,n)}<span class="nm">${esc(n)}</span>
+      <span class="val">${x.n}× <small class="u">gewonnen</small></span></li>`).join('')
+    : '<li class="empty" style="display:block">Die erste Woche läuft noch. Danach steht hier der erste Name.</li>';
+  $('#weeks').innerHTML = h.length ? h.map(w => {
+    const res = (w.results||[]).slice(0,3).map((x,i)=>`${i+1}. ${esc(x.name)} (${num(x.value, w.decimals||0)}${w.unit?' '+esc(w.unit):''})`).join(' · ');
+    return `<li><span class="t">${esc(w.title)}</span><span class="d">${esc(date(w.end))}</span>
+      <span class="w">${res || 'Niemand hat gepunktet.'}</span></li>`; }).join('')
+    : '<li class="empty">Noch keine abgeschlossene Woche.</li>';
+}
+
+async function load(){
+  try{
+    const r = await fetch('api/data', {cache:'no-store'});
+    D = await r.json();
+    offset = D.now - Date.now();
+    renderHero(); renderRank(); renderRewards(); renderHof(); tickClock();
+    $('#foot').textContent = `${D.poolSize} Challenges im Topf · ` + (D.selection === 'order' ? 'die nächste kommt der Reihe nach' : 'die nächste wird zufällig ausgelost');
+  }catch(e){ $('#foot').textContent = 'Der Server ist gerade nicht erreichbar. Die Seite versucht es gleich nochmal.'; }
+}
+load(); setInterval(load, 15000); setInterval(tickClock, 1000);
+</script>
+</body>
+</html>
