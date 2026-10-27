@@ -3,7 +3,7 @@
 ## plugins/ – fertige Jars für den plugins-Ordner
 | Plugin | Version | Was |
 |---|---|---|
-| WebConsole | 1.4.0 | Dashboard auf Port 8768: Konsole, Konten, Befehlsmenü, Tabs der anderen Plugins, Karte (BlueMap) |
+| WebConsole | 1.4.1 | Dashboard auf Port 8768: Konsole, Konten, Befehlsmenü, Tabs der anderen Plugins, Karte (BlueMap) |
 | OpWatch | 1.2.0 | Überwachung: Commands nach Kategorie, Gamemode, Creative-Items (Tab nur für Admins) |
 | ServerStats | 1.3.0 | Statistik, Wall of Shame, Spieler-Seite mit Rüstung/Verzauberungen, `/stats` |
 | WochenChallenge | 1.2.0 | Wöchentliche Challenges mit Belohnungen, `/challenge` |

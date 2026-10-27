@@ -275,11 +275,19 @@ final class WebApi {
         try {
             r = HTTP.send(rb.build(), java.net.http.HttpResponse.BodyHandlers.ofInputStream());
         } catch (Exception e) {
-            String msg = "<!doctype html><meta charset=utf-8><body style=\"font:16px system-ui;background:#15121c;color:#ece7f5;padding:40px\">"
-                    + "<h2 style=\"font-weight:600\">„" + escape(String.valueOf(tab.get("title"))) + "“ ist gerade nicht erreichbar</h2>"
-                    + "<p style=\"color:#9b93b0;max-width:60ch\">Die WebConsole hat unter <code>" + escape(String.valueOf(tab.get("proxy")))
-                    + "</code> niemanden erreicht. Ist das Karten-Plugin (z.&nbsp;B. BlueMap) installiert und gestartet, "
-                    + "und stimmt der Port in <code>plugins/WebConsole/config.yml</code> unter <code>external-tabs</code>?</p>";
+            // same look as the dashboard ("Deepslate & Gold", design/theme.css)
+            String msg = "<!doctype html><meta charset=utf-8><meta name=viewport content=\"width=device-width,initial-scale=1\">"
+                    + "<body style=\"margin:0;font:15px/1.55 Rubik,system-ui,sans-serif;background:#1e2027;color:#f1ede2;padding:32px 20px\">"
+                    + "<div style=\"max-width:640px;background:#2b2e37;border:2px solid #101116;"
+                    + "box-shadow:inset 2px 2px 0 rgba(255,255,255,.07),inset -2px -2px 0 rgba(0,0,0,.38);padding:20px 22px\">"
+                    + "<div style=\"width:14px;height:14px;background:#ee8d3e;margin-bottom:12px\"></div>"
+                    + "<h2 style=\"margin:0 0 10px;font:700 24px/1.2 'Pixelify Sans',system-ui,sans-serif\">„" + escape(String.valueOf(tab.get("title")))
+                    + "“ ist gerade nicht erreichbar</h2>"
+                    + "<p style=\"color:#a6abb8;margin:0 0 10px\">Unter <code style=\"color:#f1ede2;background:#181a20;border:2px solid #101116;padding:0 6px\">"
+                    + escape(String.valueOf(tab.get("proxy"))) + "</code> antwortet niemand.</p>"
+                    + "<p style=\"color:#a6abb8;margin:0\">Läuft das Karten-Plugin? Üblich sind Port <b style=\"color:#f1ede2\">8100</b> bei BlueMap "
+                    + "und <b style=\"color:#f1ede2\">8080</b> bei squaremap. Der Port steht in <code>plugins/WebConsole/config.yml</code> "
+                    + "unter <code>external-tabs</code>; danach den Server neu starten.</p></div>";
             send(ex, 502, "text/html; charset=utf-8", msg.getBytes(StandardCharsets.UTF_8));
             return;
         }
