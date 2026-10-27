@@ -45,6 +45,7 @@ public final class WebConsolePlugin extends JavaPlugin implements Backend, Comma
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        Msg.init("WebConsole");
 
         users = new Users(new File(getDataFolder(), "users.json"), getLogger());
         users.load();
@@ -220,11 +221,11 @@ public final class WebConsolePlugin extends JavaPlugin implements Backend, Comma
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (webDispatch) {
-            sender.sendMessage("Konten bitte im Tab „Konten“ der Web-Konsole verwalten.");
+            Msg.info(sender, "Konten bitte im Tab „Konten“ der Web-Konsole verwalten.");
             return true;
         }
         if (!(sender instanceof ConsoleCommandSender)) {
-            sender.sendMessage("§cDas geht nur über die Server-Konsole.");
+            Msg.err(sender, "Das geht nur über die Server-Konsole.");
             return true;
         }
         String sub = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "";
@@ -232,8 +233,8 @@ public final class WebConsolePlugin extends JavaPlugin implements Backend, Comma
         String role = args.length > 2 ? args[2].toLowerCase(Locale.ROOT) : null;
         switch (sub) {
             case "list" -> {
-                sender.sendMessage("Konten der Web-Konsole:");
-                for (Map<String, Object> u : users.list()) sender.sendMessage("  " + u.get("name") + "  (" + u.get("role") + ")");
+                Msg.head(sender, "Konten der Web-Konsole");
+                for (Map<String, Object> u : users.list()) Msg.line(sender, Msg.name(String.valueOf(u.get("name"))) + "  (" + u.get("role") + ")");
             }
             case "add", "reset" -> {
                 if (name == null || (sub.equals("add") && role == null)) { usage(sender); return true; }
@@ -258,16 +259,16 @@ public final class WebConsolePlugin extends JavaPlugin implements Backend, Comma
                 if (name == null || role == null) { usage(sender); return true; }
                 try {
                     users.setRole(name, role);
-                    sender.sendMessage(users.displayName(name) + " ist jetzt " + role + ".");
-                } catch (IllegalArgumentException e) { sender.sendMessage(e.getMessage()); }
+                    Msg.ok(sender, users.displayName(name) + " ist jetzt " + role + ".");
+                } catch (IllegalArgumentException e) { Msg.err(sender, e.getMessage()); }
             }
             case "remove" -> {
                 if (name == null) { usage(sender); return true; }
                 try {
                     users.delete(name);
                     sessions.invalidateUser(name);
-                    sender.sendMessage("Konto " + name + " gelöscht.");
-                } catch (IllegalArgumentException e) { sender.sendMessage(e.getMessage()); }
+                    Msg.ok(sender, "Konto " + name + " gelöscht.");
+                } catch (IllegalArgumentException e) { Msg.err(sender, e.getMessage()); }
             }
             default -> usage(sender);
         }
@@ -275,10 +276,11 @@ public final class WebConsolePlugin extends JavaPlugin implements Backend, Comma
     }
 
     private static void usage(CommandSender s) {
-        s.sendMessage("webconsole list");
-        s.sendMessage("webconsole add <name> <admin|member>   – legt ein Konto an, Passwort steht danach in der Konsole");
-        s.sendMessage("webconsole reset <name>                – neues Passwort");
-        s.sendMessage("webconsole role <name> <admin|member>");
-        s.sendMessage("webconsole remove <name>");
+        Msg.head(s, "Konten der Web-Konsole verwalten");
+        Msg.line(s, Msg.cmd("webconsole list") + " – alle Konten");
+        Msg.line(s, Msg.cmd("webconsole add <name> <admin|member>") + " – legt ein Konto an, das Passwort steht danach in der Konsole");
+        Msg.line(s, Msg.cmd("webconsole reset <name>") + " – neues Passwort");
+        Msg.line(s, Msg.cmd("webconsole role <name> <admin|member>") + " – Rolle ändern");
+        Msg.line(s, Msg.cmd("webconsole remove <name>") + " – Konto löschen");
     }
 }

@@ -35,7 +35,6 @@ import java.util.UUID;
 
 public final class WochenChallengePlugin extends JavaPlugin implements Listener, CommandExecutor {
 
-    private static final String P = "§6§l[Challenge] §r";
 
     /** progress of one player in the running week */
     private static final class Entry {
@@ -85,6 +84,7 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        Msg.init("Challenge");
         creativeRule = getConfig().getString("creative-rule", "mark").toLowerCase(Locale.ROOT);
         try { endDay = DayOfWeek.valueOf(getConfig().getString("week.day", "MONDAY").toUpperCase(Locale.ROOT)); }
         catch (Exception e) { endDay = DayOfWeek.MONDAY; }
@@ -207,7 +207,7 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
         if (current.race() && e.finishedAt == 0 && e.raw / current.divisor() >= current.target()) {
             e.finishedAt = System.currentTimeMillis();
             long place = progress.values().stream().filter(x -> x.finishedAt > 0).count();
-            broadcast(P + "§e" + p.getName() + " §ahat es geschafft" + (place == 1 ? " – als Erste(r)! §6🏆" : " – Platz " + place + "!"));
+            broadcast(Msg.prefix() + Msg.name(p.getName()) + Msg.OK + " hat es geschafft" + (place == 1 ? " – als Erste(r)!" : " – Platz " + place + "!"));
         }
     }
 
@@ -223,7 +223,7 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
         if (!first && now - lastLeaderMsg > 120_000 && getConfig().getBoolean("announce-new-leader", true)) {
             lastLeaderMsg = now;
             Entry e = r.get(0).getValue();
-            broadcast(P + "§e" + e.name + " §7übernimmt die Führung mit §f" + current.fmt(e.raw) + "§7!");
+            broadcast(Msg.prefix() + Msg.name(e.name) + " übernimmt die Führung mit " + Msg.val(current.fmt(e.raw)) + "!");
         }
     }
 
@@ -269,7 +269,7 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
             boolean prizeWorthy = !current.race() || en.finishedAt > 0;
             if (place <= 3 && prizeWorthy) {
                 reward(e.getKey(), en.name, place);
-                winners.add(place + ". " + en.name + " (" + current.fmt(en.raw) + ")");
+                winners.add("§6" + place + ". " + Msg.name(en.name) + " " + Msg.val(current.fmt(en.raw)));
             }
             if (place >= 20) break;
         }
@@ -285,9 +285,9 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
         h.put("results", results);
         history.add(h);
 
-        broadcast(P + "§7Die Woche ist vorbei: §e" + current.title());
-        if (winners.isEmpty()) broadcast(P + "§7Diesmal hat niemand gepunktet.");
-        else for (String w : winners) broadcast(P + "§f" + w);
+        broadcast(Msg.prefix() + "Die Woche ist vorbei: " + Msg.HEAD + current.title());
+        if (winners.isEmpty()) broadcast("  §7Diesmal hat niemand gepunktet.");
+        else for (String w : winners) broadcast("  " + w);
         dirty = true;
     }
 
@@ -321,9 +321,9 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
     }
 
     private void announceCurrent() {
-        broadcast(P + "§aNeue Wochen-Challenge: §e§l" + current.title());
-        if (!current.description().isEmpty()) broadcast("§7" + current.description());
-        broadcast("§7Läuft bis §f" + endText() + "§7. Infos mit §f/challenge");
+        broadcast(Msg.prefix() + "Neue Wochen-Challenge: " + Msg.HEAD + "§l" + current.title());
+        if (!current.description().isEmpty()) broadcast("  §7" + current.description());
+        broadcast("  §7Läuft bis " + Msg.val(endText()) + ". Infos mit " + Msg.cmd("/challenge"));
     }
 
     // ====================================================================== rewards
@@ -334,7 +334,7 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
         Player p = getServer().getPlayer(id);
         if (p != null && p.isOnline()) {
             for (String s : specs) give(p, s);
-            p.sendMessage(P + "§aDu hast Platz " + place + " belegt – deine Belohnung ist im Inventar!");
+            Msg.ok(p, "Du hast Platz " + place + " belegt – deine Belohnung ist im Inventar!");
         } else {
             pendingRewards.computeIfAbsent(id.toString(), k -> new ArrayList<>()).addAll(specs);
         }
@@ -367,13 +367,13 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
             if (!p.isOnline()) return;
             if (pend != null && !pend.isEmpty()) {
                 for (String s : pend) give(p, s);
-                p.sendMessage(P + "§aDu hast in der letzten Challenge gewonnen – hier ist deine Belohnung!");
+                Msg.ok(p, "Du hast in der letzten Challenge gewonnen – hier ist deine Belohnung!");
                 dirty = true;
             }
             if (current != null) {
                 Entry e = progress.get(p.getUniqueId());
-                p.sendMessage(P + "§7Diese Woche: §e" + current.title() + " §7(bis " + endText() + ")");
-                p.sendMessage("§7Dein Stand: §f" + (e == null ? current.fmt(0) : current.fmt(e.raw)) + rankText(p.getUniqueId()));
+                Msg.info(p, "Diese Woche: " + Msg.HEAD + current.title() + Msg.TEXT + " (bis " + endText() + ")");
+                Msg.kv(p, "Dein Stand", (e == null ? current.fmt(0) : current.fmt(e.raw)) + rankText(p.getUniqueId()));
             }
         }, 60L);
         if (pend != null) dirty = true;
@@ -398,7 +398,7 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
                 e.creative = true;
                 dirty = true;
                 if (creativeRule.equals("disqualify"))
-                    p.sendMessage(P + "§cDu warst im Creative – für diese Woche zählst du in der Challenge nicht mehr.");
+                    Msg.err(p, "Du warst im Creative – für diese Woche zählst du in der Challenge nicht mehr.");
             }
         }
     }
@@ -407,26 +407,26 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
 
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
-        if (current == null) { sender.sendMessage(P + "§cKeine Challenge aktiv."); return true; }
+        if (current == null) { Msg.err(sender, "Gerade läuft keine Challenge."); return true; }
         String sub = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "";
         boolean console = sender instanceof ConsoleCommandSender;
 
         if (sub.equals("next") || sub.equals("set") || sub.equals("list")) {
-            if (!console) { sender.sendMessage(P + "§cDas geht nur über die Server-Konsole."); return true; }
+            if (!console) { Msg.err(sender, "Das geht nur über die Server-Konsole."); return true; }
             switch (sub) {
-                case "list" -> sender.sendMessage("Challenges: " + String.join(", ", challenges.keySet()));
+                case "list" -> Msg.info(sender, "Challenges: " + Msg.val(String.join(", ", challenges.keySet())));
                 case "next" -> {
                     for (Player p : getServer().getOnlinePlayers()) update(p);
                     finishWeek();
                     startNext(true);
-                    sender.sendMessage("Woche beendet, neue Challenge: " + current.title());
+                    Msg.ok(sender, "Woche beendet, neue Challenge: " + current.title());
                 }
                 default -> {
                     Challenge c = args.length > 1 ? challenges.get(args[1]) : null;
-                    if (c == null) { sender.sendMessage("Nutzung: challenge set <id>  (ids: challenge list)"); return true; }
+                    if (c == null) { Msg.err(sender, "Nutzung: " + Msg.cmd("challenge set <id>") + Msg.ERR + " – IDs zeigt " + Msg.cmd("challenge list")); return true; }
                     setChallenge(c);
                     announceCurrent();
-                    sender.sendMessage("Challenge gewechselt (ohne Wertung): " + c.title());
+                    Msg.ok(sender, "Challenge gewechselt (ohne Wertung): " + c.title());
                 }
             }
             rebuild();
@@ -434,9 +434,9 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
         }
 
         if (sender instanceof Player p) update(p);
-        sender.sendMessage(P + "§e§l" + current.title());
-        if (!current.description().isEmpty()) sender.sendMessage("§7" + current.description());
-        sender.sendMessage("§7Endet: §f" + endText());
+        Msg.head(sender, current.title());
+        if (!current.description().isEmpty()) Msg.line(sender, current.description());
+        Msg.kv(sender, "Endet", endText());
         List<Map.Entry<UUID, Entry>> r = ranked();
         int i = 0;
         for (Map.Entry<UUID, Entry> e : r) {
@@ -445,15 +445,15 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
             Entry en = e.getValue();
             String flag = en.creative && creativeRule.equals("mark") ? " §c(war im Creative)" : "";
             String done = current.race() && en.finishedAt > 0 ? " §a✔" : "";
-            sender.sendMessage("§6" + i + ". §f" + en.name + " §7– " + current.fmt(en.raw) + done + flag);
+            Msg.send(sender, "  §6" + i + ". " + Msg.name(en.name) + " – " + Msg.val(current.fmt(en.raw)) + done + flag);
         }
-        if (i == 0) sender.sendMessage("§7Noch hat niemand gepunktet.");
+        if (i == 0) Msg.line(sender, "Noch hat niemand gepunktet.");
         if (sender instanceof Player p) {
             Entry e = progress.get(p.getUniqueId());
-            sender.sendMessage("§7Du: §f" + (e == null ? current.fmt(0) : current.fmt(e.raw)) + rankText(p.getUniqueId()));
+            Msg.kv(sender, "Du", (e == null ? current.fmt(0) : current.fmt(e.raw)) + rankText(p.getUniqueId()));
         }
         String url = getConfig().getString("web.public-url", "");
-        if (url != null && !url.isBlank()) sender.sendMessage("§7Alles auf §b" + url);
+        if (url != null && !url.isBlank()) Msg.line(sender, "Alles auf " + Msg.CMD + url);
         return true;
     }
 
@@ -470,8 +470,8 @@ public final class WochenChallengePlugin extends JavaPlugin implements Listener,
     }
 
     private void broadcast(String msg) {
-        for (Player p : getServer().getOnlinePlayers()) p.sendMessage(msg);
-        getLogger().info(msg.replaceAll("§.", ""));
+        for (Player p : getServer().getOnlinePlayers()) Msg.send(p, msg);
+        getLogger().info(msg.replaceAll("§.", "").trim());
     }
 
     // ====================================================================== web data

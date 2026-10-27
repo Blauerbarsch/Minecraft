@@ -1,0 +1,110 @@
+/* =====================================================================
+   Gemeinsames Design aller Server-Plugins – "Deepslate & Gold"
+   Quelle: design/theme.css im Repo. Wird beim `gradle build` zusammen mit
+   design/fonts.css an der THEME-Markierung in jede Weboberfläche eingesetzt.
+   Nur hier ändern.
+   ===================================================================== */
+/* Schriften: design/fonts.css (eingebettet, kein Abruf bei Google) */
+
+:root{
+  /* Flächen */
+  --bg:#1e2027;        /* Tiefenschiefer, Seitengrund */
+  --panel:#2b2e37;     /* erhabene Fläche */
+  --panel-2:#353945;   /* Knöpfe, Hover */
+  --sunken:#181a20;    /* eingelassene Slots: Eingaben, Werte, Log */
+  --edge:#101116;      /* harte Außenkante */
+  --line:#3a3e4a;      /* Trennlinien innerhalb einer Fläche */
+  --hi:rgba(255,255,255,.07);  /* Fase hell (oben links) */
+  --lo:rgba(0,0,0,.38);        /* Fase dunkel (unten rechts) */
+  /* Schrift */
+  --text:#f1ede2; --mute:#a6abb8; --faint:#6f7482;
+  /* Marke + Zustände (Erzfarben) */
+  --gold:#f3c04a; --gold-ink:#2a2108; --gold-dim:#8a6d1f;
+  --ok:#4fcf7c; --warn:#ee8d3e; --err:#ef5a4f;
+  --info:#5fd8d2; --lapis:#6c8cff; --amethyst:#b98cf5;
+  --silver:#cfd6df; --bronze:#c98a52;
+  /* Typo */
+  --px:'Pixelify Sans','Rubik',system-ui,sans-serif;
+  --sans:'Rubik',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+  --bevel:inset 2px 2px 0 var(--hi), inset -2px -2px 0 var(--lo);
+  --sink:inset 2px 2px 0 rgba(0,0,0,.45), inset -1px -1px 0 rgba(255,255,255,.05);
+  color-scheme:dark;
+}
+
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html{background:var(--bg)}
+body{margin:0;min-height:100vh;color:var(--text);font:15px/1.5 var(--sans);
+  background:
+    linear-gradient(90deg,rgba(0,0,0,.07) 50%,transparent 50%) 0 0/32px 32px,
+    linear-gradient(rgba(0,0,0,.07) 50%,transparent 50%) 0 0/32px 32px,
+    var(--bg)}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+::selection{background:var(--gold);color:var(--gold-ink)}
+a{color:var(--gold);text-underline-offset:3px}
+h1,h2,h3,h4{font-family:var(--px);font-weight:700;margin:0;letter-spacing:.4px;line-height:1.1}
+.muted{color:var(--mute)}
+.num{font-family:var(--px);font-weight:500;font-variant-numeric:tabular-nums}
+* {scrollbar-width:thin;scrollbar-color:var(--panel-2) var(--sunken)}
+
+/* ---------- Flächen ---------- */
+.panel{background:var(--panel);border:2px solid var(--edge);box-shadow:var(--bevel)}
+.slot-in{background:var(--sunken);border:2px solid var(--edge);box-shadow:var(--sink)}
+
+/* ---------- Bedienelemente ---------- */
+button,select,input,textarea{font:inherit;color:var(--text)}
+button,.btn{cursor:pointer;background:var(--panel-2);border:2px solid var(--edge);box-shadow:var(--bevel);
+  padding:6px 12px;border-radius:0;text-decoration:none;display:inline-flex;align-items:center;gap:6px;line-height:1.3}
+button:hover,.btn:hover{background:#404553}
+button:active,.btn:active{box-shadow:var(--sink)}
+button:disabled{opacity:.55;cursor:default}
+button.primary,.btn.primary{background:var(--gold);color:var(--gold-ink);font-weight:500;
+  box-shadow:inset 2px 2px 0 rgba(255,255,255,.35), inset -2px -2px 0 rgba(0,0,0,.25)}
+button.primary:hover{background:#f7cf6c}
+button.danger:hover{color:var(--err);border-color:var(--err)}
+button.on,button[aria-pressed=true]{background:var(--gold);color:var(--gold-ink)}
+input,select,textarea{background:var(--sunken);border:2px solid var(--edge);box-shadow:var(--sink);border-radius:0;padding:7px 10px}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--gold)}
+input::placeholder{color:var(--faint)}
+
+/* Chips / Marker */
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:13px;padding:2px 9px;background:var(--sunken);border:2px solid var(--edge);white-space:nowrap}
+.chip.gold{color:var(--gold);border-color:var(--gold-dim)}
+.chip.ok{color:var(--ok)} .chip.warn{color:var(--warn);border-color:rgba(238,141,62,.5)} .chip.err{color:var(--err);border-color:rgba(239,90,79,.5)}
+.chip.admin{color:var(--amethyst);border-color:rgba(185,140,245,.5)}
+.live-dot{display:inline-block;width:10px;height:10px;background:var(--ok);box-shadow:inset -2px -2px 0 rgba(0,0,0,.3)}
+.live-dot.off{background:var(--err)}
+.ok{color:var(--ok)} .warn{color:var(--warn)} .bad,.err-text{color:var(--err)}
+
+/* Spielerkopf / Platzhalter */
+img.head,.ph{image-rendering:pixelated;display:block;background:var(--panel-2);flex:none}
+.ph{display:grid;place-items:center;font-family:var(--px);color:var(--mute);font-weight:700}
+
+/* Kopfzeile der Einzelseiten (in der WebConsole ausgeblendet) */
+.pagehead{display:flex;align-items:center;flex-wrap:wrap;gap:10px 18px;padding:12px 20px;background:var(--panel);
+  border-bottom:2px solid var(--edge);box-shadow:inset 0 -2px 0 var(--lo)}
+.pagehead .mark{width:14px;height:14px;background:var(--gold);box-shadow:inset -3px -3px 0 rgba(0,0,0,.28),inset 3px 3px 0 rgba(255,255,255,.3);flex:none}
+.pagehead .srv{font:700 18px var(--px)}
+.pagehead .where{color:var(--mute)}
+.embed .pagehead{display:none}
+
+/* Abschnitts-Überschriften */
+.sec-h{font-size:26px;margin:40px 0 4px}
+.lead{color:var(--mute);margin:0 0 16px;max-width:64ch}
+
+/* Dialog + Toast */
+dialog{background:var(--panel);color:var(--text);border:2px solid var(--edge);box-shadow:var(--bevel),6px 6px 0 rgba(0,0,0,.45);padding:0;border-radius:0}
+dialog::backdrop{background:rgba(10,11,14,.7)}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--panel-2);border:2px solid var(--edge);box-shadow:var(--bevel),4px 4px 0 rgba(0,0,0,.4);
+  padding:9px 14px;max-width:calc(100% - 32px);z-index:50}
+#toast.bad{color:var(--err);border-color:var(--err)}
+
+/* Balken (Fortschritt, Haltbarkeit) */
+.bar{height:8px;background:var(--sunken);border:1px solid var(--edge);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--gold)}
+
+/* Eingebettet in der WebConsole: gleicher Grund, keine eigene Kopfzeile */
+.embed body{background:var(--bg)}
+
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}

@@ -4,81 +4,67 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>OpWatch</title>
+<!--THEME-->
 <style>
-:root{
-  --bg:#0f1115; --panel:#171a21; --panel2:#1d212a; --line:#2a2f3a; --text:#e6e8ec; --mute:#8b93a3;
-  --acc:#5fd38d; --warn:#f2b84b; --bad:#ff6b6b; --blue:#6aa8ff; --violet:#b08cff;
-  --mono: ui-monospace, "JetBrains Mono", "Cascadia Code", Consolas, monospace;
-}
-/* inside the dark WebConsole dashboard always stay dark */
-@media (prefers-color-scheme: light){
-  :root:not(.embed){ --bg:#f4f5f7; --panel:#fff; --panel2:#f0f2f5; --line:#dde1e7; --text:#1b1e24; --mute:#667085;
-    --acc:#1f9d55; --warn:#b7791f; --bad:#d63939; --blue:#2f6fd6; --violet:#7a4fd6; }
-}
-*{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
-header{display:flex;align-items:center;gap:16px;padding:12px 20px;border-bottom:1px solid var(--line);background:var(--panel);position:sticky;top:0;z-index:5;flex-wrap:wrap}
-.brand{font-weight:700;letter-spacing:.3px;display:flex;align-items:center;gap:8px}
-.dot{width:9px;height:9px;border-radius:50%;background:var(--acc);box-shadow:0 0 0 3px color-mix(in srgb,var(--acc) 25%,transparent)}
-.dot.off{background:var(--bad)}
+.empty{padding:30px;text-align:center;color:var(--mute)}
+header{position:sticky;top:0;z-index:5}
+.embed header.pagehead{position:static;display:flex;background:transparent;border:0;box-shadow:none;padding:14px 20px 0}
+.embed .pagehead .srv,.embed .pagehead .mark{display:none}
 .online{display:flex;gap:6px;flex-wrap:wrap;flex:1}
-.pill{font-size:12px;padding:3px 9px;border-radius:99px;background:var(--panel2);border:1px solid var(--line);white-space:nowrap;cursor:pointer}
-.pill.creative{border-color:var(--warn);color:var(--warn)}
-.pill .gm{color:var(--mute);margin-left:4px}
-button,select,input{font:inherit;color:var(--text);background:var(--panel2);border:1px solid var(--line);border-radius:7px;padding:6px 10px}
-button{cursor:pointer}
-button.on{border-color:var(--acc);color:var(--acc)}
+.pill{cursor:pointer}
+.pill.creative{color:var(--warn);border-color:rgba(238,141,62,.5)}
+.pill .gm{color:var(--mute)}
 main{display:grid;grid-template-columns:250px 1fr;gap:16px;padding:16px 20px;max-width:1500px;margin:0 auto}
 @media (max-width:860px){main{grid-template-columns:1fr;padding:12px 16px}}
 aside{display:flex;flex-direction:column;gap:14px}
-.box{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px}
-.box h3{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.6px;color:var(--mute);font-weight:600}
-.cat{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;border-radius:6px;cursor:pointer;user-select:none}
-.cat:hover{background:var(--panel2)}
-.cat.sel{background:color-mix(in srgb,var(--blue) 18%,transparent);color:var(--blue)}
-.cat .n{color:var(--mute);font-variant-numeric:tabular-nums;font-size:12px}
+.box{padding:12px}
+.box h3{margin:0 0 10px;font-size:17px}
+.cat{display:flex;justify-content:space-between;align-items:center;padding:5px 8px;cursor:pointer;user-select:none;border:2px solid transparent}
+.cat:hover{background:var(--panel-2)}
+.cat.sel{background:var(--sunken);border-color:var(--gold-dim);color:var(--gold)}
+.cat .n{color:var(--mute);font:500 14px var(--px)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:14px}
-.tile{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.tile .v{font-size:22px;font-weight:700;font-variant-numeric:tabular-nums}
-.tile .l{font-size:12px;color:var(--mute)}
+.tile{padding:10px 12px}
+.tile .v{font:500 28px/1.1 var(--px);font-variant-numeric:tabular-nums}
+.tile .l{font-size:13px;color:var(--mute)}
 .tabs{display:flex;gap:6px;margin-bottom:10px;flex-wrap:wrap}
-.tabs button.sel{background:var(--text);color:var(--bg);border-color:var(--text)}
+.tabs button.sel{background:var(--gold);color:var(--gold-ink)}
 .toolbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .toolbar input{flex:1;min-width:180px}
-.list{background:var(--panel);border:1px solid var(--line);border-radius:10px;overflow:hidden}
-.row{display:grid;grid-template-columns:130px 140px 1fr;gap:12px;padding:8px 12px;border-bottom:1px solid var(--line);align-items:start}
+.list{overflow:hidden}
+.row{display:grid;grid-template-columns:130px 140px 1fr;gap:12px;padding:8px 12px;border-bottom:2px solid var(--line);align-items:start}
 .row:last-child{border-bottom:0}
-.row:hover{background:var(--panel2)}
+.row:hover{background:var(--panel-2)}
 @media (max-width:700px){.row{grid-template-columns:1fr}}
 .time{color:var(--mute);font-variant-numeric:tabular-nums;font-size:12px}
-.who{font-weight:600;cursor:pointer;overflow:hidden;text-overflow:ellipsis}
+.who{font-weight:500;cursor:pointer;overflow:hidden;text-overflow:ellipsis}
 .who small{display:block;font-weight:400;color:var(--mute);font-size:11px}
 .cmd{font-family:var(--mono);font-size:13px;word-break:break-all}
-.tag{display:inline-block;font-size:11px;padding:1px 7px;border-radius:99px;margin-right:6px;border:1px solid var(--line);color:var(--mute);vertical-align:1px}
-.t-COMMAND{color:var(--blue);border-color:color-mix(in srgb,var(--blue) 40%,transparent)}
-.t-GAMEMODE{color:var(--violet);border-color:color-mix(in srgb,var(--violet) 40%,transparent)}
-.t-CREATIVE{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 45%,transparent)}
-.t-JOIN,.t-QUIT{color:var(--acc);border-color:color-mix(in srgb,var(--acc) 40%,transparent)}
-.notable{box-shadow:inset 3px 0 0 var(--bad)}
+.tag{display:inline-block;font-size:11px;padding:0 7px;margin-right:6px;border:2px solid var(--edge);background:var(--sunken);color:var(--mute);vertical-align:1px}
+.t-COMMAND{color:var(--lapis)}
+.t-GAMEMODE{color:var(--amethyst)}
+.t-CREATIVE{color:var(--warn)}
+.t-JOIN,.t-QUIT{color:var(--ok)}
+.notable{box-shadow:inset 4px 0 0 var(--err)}
 .items{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
-.it{font-family:var(--mono);font-size:12px;padding:2px 7px;border-radius:5px;background:var(--panel2);border:1px solid var(--line)}
-.it.n{border-color:var(--bad);color:var(--bad)}
+.it{font-family:var(--mono);font-size:12px;padding:1px 7px;background:var(--sunken);border:2px solid var(--edge)}
+.it.n{border-color:var(--err);color:var(--err)}
 .sub{color:var(--mute);font-size:12px;margin-top:2px}
-.empty{padding:30px;text-align:center;color:var(--mute)}
 .players{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
-.pc{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;cursor:pointer}
-.pc:hover{border-color:var(--blue)}
-.pc h4{margin:0 0 6px;font-size:15px;display:flex;justify-content:space-between}
-.kv{display:grid;grid-template-columns:1fr auto;gap:2px 10px;font-size:13px}
+.pc{padding:12px;cursor:pointer}
+.pc:hover{background:var(--panel-2)}
+.pc h4{margin:0 0 8px;font-size:18px;display:flex;justify-content:space-between;align-items:baseline}
+.pc h4 .sub{font-family:var(--sans)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:3px 10px;font-size:13px}
 .kv span:nth-child(odd){color:var(--mute)}
-.bad{color:var(--bad)} .warn{color:var(--warn)}
-a{color:var(--blue)}
-.more{display:block;width:100%;border:0;border-top:1px solid var(--line);border-radius:0;padding:10px;background:transparent;color:var(--blue)}
+.kv span:nth-child(even){font:500 15px var(--px);text-align:right}
+.more{display:flex;width:100%;border:0;border-top:2px solid var(--edge);box-shadow:none;padding:10px;background:transparent;color:var(--gold);justify-content:center}
+#files a{color:var(--mute)} #files a:hover{color:var(--gold)}
 </style>
 </head>
 <body>
-<header>
-  <div class="brand"><span class="dot" id="live"></span> OpWatch</div>
+<header class="pagehead">
+  <span class="mark" aria-hidden="true"></span><span class="srv">OpWatch</span><span class="live-dot" id="live" title="Live-Verbindung"></span>
   <div class="online" id="online"></div>
   <select id="range" title="Zeitraum">
     <option value="3600000">letzte Stunde</option>
@@ -87,20 +73,20 @@ a{color:var(--blue)}
     <option value="604800000">7 Tage</option>
     <option value="0">alles geladene</option>
   </select>
-  <button id="pause">⏸ Live</button>
+  <button id="pause" title="Neue Einträge anhalten">Pausieren</button>
 </header>
 
 <main>
   <aside>
-    <div class="box">
+    <div class="box panel">
       <h3>Command-Kategorien</h3>
       <div id="cats"></div>
     </div>
-    <div class="box">
+    <div class="box panel">
       <h3>Spieler</h3>
       <select id="player" style="width:100%"><option value="">Alle Spieler</option></select>
     </div>
-    <div class="box">
+    <div class="box panel">
       <h3>Log-Dateien</h3>
       <div id="files" class="sub"></div>
     </div>
@@ -118,7 +104,7 @@ a{color:var(--blue)}
     </div>
     <div class="toolbar">
       <input id="q" placeholder="Suchen (Command, Item, Spieler, Koordinaten …)">
-      <button id="onlyNotable">❗ nur Auffälliges</button>
+      <button id="onlyNotable">Nur Auffälliges</button>
     </div>
     <div id="view"></div>
   </section>
@@ -151,7 +137,7 @@ async function meta(){
     const m = await api('api/meta');
     S.cats = m.categories; S.online = m.online;
     $('#online').innerHTML = m.online.length ? m.online.map(p =>
-      `<span class="pill ${p.gm==='creative'?'creative':''}" data-p="${esc(p.name)}">${esc(p.name)}<span class="gm">${esc(p.gm)}</span></span>`).join('')
+      `<span class="chip pill ${p.gm==='creative'?'creative':''}" data-p="${esc(p.name)}">${esc(p.name)}<span class="gm">${esc(p.gm)}</span></span>`).join('')
       : '<span class="sub">niemand online</span>';
     $('#files').innerHTML = m.files.slice(0,10).map(f => `<div><a href="api/file?name=${encodeURIComponent(f)}">${esc(f)}</a></div>`).join('') || 'noch keine';
     if (!S.metaLoaded){ S.metaLoaded = true; render(); } else renderSide();
@@ -202,7 +188,7 @@ function renderTiles(){
   const kept = ev.filter(e=>e.type==='CREATIVE_EXIT').reduce((s,e)=>s+(e.total||0),0);
   const flag = ev.filter(e=>e.notable).length;
   const t = [[cmds,'Commands'],[gm,'Wechsel zu Creative'],[items,'Items aus Creative genommen'],[kept,'Items aus Creative mitgenommen', kept?'warn':''],[flag,'auffällige Einträge', flag?'bad':'']];
-  $('#tiles').innerHTML = t.map(([v,l,c])=>`<div class="tile"><div class="v ${c||''}">${v.toLocaleString('de-DE')}</div><div class="l">${l}</div></div>`).join('');
+  $('#tiles').innerHTML = t.map(([v,l,c])=>`<div class="tile panel"><div class="v ${c||''}">${v.toLocaleString('de-DE')}</div><div class="l">${l}</div></div>`).join('');
 }
 
 function itemsHtml(list, label){
@@ -243,11 +229,11 @@ function renderPlayers(){
     if (e.notable) p.flag++;
   }
   const names = Object.keys(by).sort((a,b)=>by[b].last-by[a].last);
-  if (!names.length) return '<div class="list"><div class="empty">Noch keine Daten in diesem Zeitraum.</div></div>';
+  if (!names.length) return '<div class="list panel"><div class="empty">Noch keine Daten in diesem Zeitraum.</div></div>';
   const on = new Set(S.online.map(o=>o.name));
   return '<div class="players">' + names.map(n => { const p = by[n];
     const top = Object.entries(p.cats).sort((a,b)=>b[1]-a[1]).slice(0,3).map(([k,v])=>`${esc(S.cats[k]||k)} ${v}`).join(', ') || '–';
-    return `<div class="pc" data-p="${esc(n)}"><h4>${esc(n)} <span class="sub">${on.has(n)?'🟢 online':fmtTime(p.last)}</span></h4>
+    return `<div class="pc panel" data-p="${esc(n)}"><h4>${esc(n)} <span class="sub">${on.has(n)?'<span class="ok">online</span>':fmtTime(p.last)}</span></h4>
       <div class="kv"><span>Commands</span><span>${p.cmds}</span>
       <span>Top-Kategorien</span><span style="text-align:right">${top}</span>
       <span>Mal in Creative</span><span>${p.crea}</span>
@@ -262,7 +248,7 @@ function render(){
   if (S.tab === 'players'){ $('#view').innerHTML = renderPlayers(); return; }
   const list = filtered().reverse();
   const shown = list.slice(0, S.show);
-  $('#view').innerHTML = '<div class="list">' + (shown.length ? shown.map(rowHtml).join('') : '<div class="empty">Keine Einträge für diesen Filter.</div>') +
+  $('#view').innerHTML = '<div class="list panel">' + (shown.length ? shown.map(rowHtml).join('') : '<div class="empty">Keine Einträge für diesen Filter.</div>') +
     (list.length > S.show ? `<button class="more" id="more">Weitere ${Math.min(300, list.length - S.show)} von ${list.length - S.show} laden</button>` : '') + '</div>';
 }
 
@@ -275,7 +261,7 @@ $('#player').addEventListener('change', e => { S.player = e.target.value; render
 $('#q').addEventListener('input', e => { S.q = e.target.value; S.show = 300; render(); });
 $('#range').addEventListener('change', render);
 $('#onlyNotable').addEventListener('click', e => { S.notable = !S.notable; e.target.classList.toggle('on', S.notable); render(); });
-$('#pause').addEventListener('click', e => { S.paused = !S.paused; e.target.textContent = S.paused ? '▶ Pausiert' : '⏸ Live'; e.target.classList.toggle('on', S.paused); if(!S.paused) poll(); });
+$('#pause').addEventListener('click', e => { S.paused = !S.paused; e.target.textContent = S.paused ? 'Fortsetzen' : 'Pausieren'; e.target.classList.toggle('on', S.paused); if(!S.paused) poll(); });
 document.addEventListener('click', e => {
   if (e.target.id === 'more'){ S.show += 300; render(); return; }
   const p = e.target.closest('[data-p]'); if (!p || p.dataset.p.startsWith('[')) return;

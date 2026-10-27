@@ -1,5 +1,5 @@
 name: Muelleimer
-version: 1.0.1
+version: 1.1.0
 main: dev.muelleimer.MuelleimerPlugin
 api-version: '1.21'
 description: Mülleimer per /trash und als eigener Block

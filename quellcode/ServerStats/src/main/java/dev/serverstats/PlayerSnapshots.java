@@ -34,6 +34,8 @@ final class PlayerSnapshots {
     private final Map<UUID, Map<String, Object>> online = new HashMap<>();
     private final Map<UUID, Map<String, Object>> known = new HashMap<>();
     private final Map<UUID, Long> joined = new HashMap<>();
+    /** Shown in the page header of the standalone players page. */
+    volatile String serverName = "";
     private volatile String jsonAdmin = "{\"players\":[]}";
     private volatile String jsonMember = "{\"players\":[]}";
     private final ExecutorService io = Executors.newSingleThreadExecutor(r -> {
@@ -116,6 +118,7 @@ final class PlayerSnapshots {
     private Map<String, Object> wrap(List<Map<String, Object>> players, boolean admin) {
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("generated", System.currentTimeMillis());
+        out.put("serverName", serverName);
         out.put("full", admin);
         out.put("showLocation", admin || membersLoc);
         out.put("showInventory", admin || membersInv);

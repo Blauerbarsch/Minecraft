@@ -40,6 +40,7 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        Msg.init("Grab");
         try { zone = ZoneId.of(getConfig().getString("timezone", "Europe/Berlin")); } catch (Exception ignored) { }
         File own = new File(getDataFolder(), "audit");
         own.mkdirs();
@@ -72,7 +73,7 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
     @Override
     public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
         if (!(sender instanceof ConsoleCommandSender)) {
-            sender.sendMessage("§cNur über die Server-Konsole oder die Web-Konsole – sonst könnte man Items verdoppeln.");
+            Msg.err(sender, "Nur über die Server-Konsole oder die Web-Konsole – sonst könnte man Items verdoppeln.");
             return true;
         }
         String sub = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "";
@@ -98,9 +99,10 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
     }
 
     private void usage(CommandSender s) {
-        s.sendMessage("grab liste [Spieler]            – letzte Tode anzeigen");
-        s.sendMessage("grab zurück <Spieler> [Nr]      – Inventar 1:1 zurückgeben (Nr aus der Liste, 1 = letzter Tod)");
-        s.sendMessage("grab zurück <Spieler> <Nr> spezial – nur Items mit Zusatzdaten (verzaubert, beschädigt, Shulker-Inhalt …)");
+        Msg.head(s, "Grabkisten wiederherstellen");
+        Msg.line(s, Msg.cmd("grab liste [Spieler]") + " – letzte Tode anzeigen");
+        Msg.line(s, Msg.cmd("grab zurück <Spieler> [Nr]") + " – Inventar 1:1 zurückgeben (Nr aus der Liste, 1 = letzter Tod)");
+        Msg.line(s, Msg.cmd("grab zurück <Spieler> <Nr> spezial") + " – nur Items mit Zusatzdaten (verzaubert, beschädigt, Shulker-Inhalt …)");
     }
 
     private static List<GraveLog.Grave> of(List<GraveLog.Grave> all, String player) {
@@ -116,10 +118,11 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
     private void list(CommandSender s, List<GraveLog.Grave> all, String player) {
         List<GraveLog.Grave> l = of(all, player);
         if (l.isEmpty()) {
-            s.sendMessage(player == null ? "Keine Grabkisten in den Logs gefunden." : "Keine Tode von " + player + " in den Logs gefunden.");
+            Msg.info(s, player == null ? "Keine Grabkisten in den Logs gefunden." : "Keine Tode von " + Msg.name(player) + " in den Logs gefunden.");
             return;
         }
-        s.sendMessage("Letzte Tode" + (player == null ? "" : " von " + player) + " (Nr für „grab zurück“):");
+        Msg.head(s, "Letzte Tode" + (player == null ? "" : " von " + player));
+        Msg.line(s, "Die Nr hinter dem Namen gehört zu " + Msg.cmd("grab zurück <Spieler> <Nr>"));
         int shown = 0;
         // numbering is per player so that "Nr" matches "grab zurück <Spieler> <Nr>"
         Map<String, Integer> counter = new LinkedHashMap<>();
@@ -127,33 +130,33 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
             int n = counter.merge(g.ownerName.toLowerCase(Locale.ROOT), 1, Integer::sum);
             if (player != null && !g.ownerName.equalsIgnoreCase(player)) continue;
             if (shown++ >= 15) break;
-            String done = restored.containsKey(g.key) ? "  [schon zurückgegeben]" : "";
-            s.sendMessage(String.format("  %s #%d  %s  %s %d %d %d  %d Items  –  %s%s",
-                    g.ownerName, n, when(g), g.world, g.x, g.y, g.z, g.itemCount(), g.status(), done));
+            String done = restored.containsKey(g.key) ? "  " + Msg.OK + "schon zurückgegeben" : "";
+            Msg.send(s, String.format("  %s#%d  %s%s  %s %d %d %d  %s%d Items%s  –  %s%s",
+                    Msg.NAME + g.ownerName + " §6", n, Msg.TEXT, when(g), g.world, g.x, g.y, g.z, Msg.VALUE, g.itemCount(), Msg.TEXT, g.status(), done));
         }
     }
 
     private void restore(CommandSender s, List<GraveLog.Grave> all, String player, int nr, boolean force, boolean special) {
         List<GraveLog.Grave> l = of(all, player);
         if (nr < 1 || nr > l.size()) {
-            s.sendMessage("Keinen Tod Nr. " + nr + " von " + player + " gefunden. Siehe: grab liste " + player);
+            Msg.err(s, "Keinen Tod Nr. " + nr + " von " + player + " gefunden. Siehe " + Msg.cmd("grab liste " + player));
             return;
         }
         GraveLog.Grave g = l.get(nr - 1);
         Player target = getServer().getPlayerExact(g.ownerName);
         if (target == null) {
-            s.sendMessage(g.ownerName + " ist nicht online – die Items können nur direkt ins Inventar gegeben werden.");
+            Msg.err(s, g.ownerName + " ist nicht online – die Items können nur direkt ins Inventar gegeben werden.");
             return;
         }
         String recKey = special ? g.key + "#spezial" : g.key;
         if (!force) {
             if (restored.containsKey(recKey)) {
-                s.sendMessage("Dieser Tod (" + when(g) + ") wurde schon zurückgegeben. Nochmal: grab zurück " + player + " " + nr + " nochmal");
+                Msg.info(s, "Dieser Tod (" + when(g) + ") wurde schon zurückgegeben. Nochmal: " + Msg.cmd("grab zurück " + player + " " + nr + " nochmal"));
                 return;
             }
             if (!g.lost()) {
-                s.sendMessage("Achtung: Diese Kiste wurde nicht gelöscht (" + g.status() + "). Die Items sind vermutlich nicht weg.");
-                s.sendMessage("Trotzdem zurückgeben: grab zurück " + player + " " + nr + " nochmal");
+                Msg.err(s, "Achtung: Diese Kiste wurde nicht gelöscht (" + g.status() + "). Die Items sind vermutlich nicht weg.");
+                Msg.line(s, "Trotzdem zurückgeben: " + Msg.cmd("grab zurück " + player + " " + nr + " nochmal"));
                 return;
             }
         }
@@ -164,7 +167,7 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
         for (Map<String, Object> it : g.restoreItems())
             if (!special || (it.get("components") instanceof Map<?, ?> c && !c.isEmpty())) give.add(it);
         if (give.isEmpty()) {
-            s.sendMessage("In dieser Kiste lag beim Entfernen nichts mehr – es gibt nichts zurückzugeben.");
+            Msg.info(s, "In dieser Kiste lag beim Entfernen nichts mehr – es gibt nichts zurückzugeben.");
             return;
         }
         int ok = 0, failed = 0;
@@ -181,7 +184,7 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
             ok++;
         }
         if (ok == 0) {
-            s.sendMessage("Es konnte kein Item erzeugt werden – nichts wurde gegeben. Details stehen oben in der Konsole.");
+            Msg.err(s, "Es konnte kein Item erzeugt werden – nichts wurde gegeben. Details stehen oben in der Konsole.");
             return;
         }
         Map<String, Object> rec = new LinkedHashMap<>();
@@ -192,10 +195,10 @@ public final class GraveRestorePlugin extends JavaPlugin implements CommandExecu
         if (ok > 0) restored.put(recKey, rec);
         saveRestored();
 
-        s.sendMessage("Inventar vom " + when(g) + " an " + target.getName() + " zurückgegeben: " + ok + " von " + give.size() + " Stapeln"
-                + (failed > 0 ? " – NICHT geklappt: " + String.join(", ", failedIds) + " (siehe Konsole)" : "") + ".");
-        if (give.size() > free) s.sendMessage("Hinweis: Das Inventar hatte nur " + free + " freie Plätze – der Rest liegt vor den Füßen.");
-        target.sendMessage("§aDein Inventar vom " + when(g) + " wurde wiederhergestellt (" + ok + " Stapel). Rüstung bitte selbst wieder anziehen.");
+        Msg.ok(s, "Inventar vom " + when(g) + " an " + target.getName() + " zurückgegeben: " + ok + " von " + give.size() + " Stapeln.");
+        if (failed > 0) Msg.err(s, "Nicht geklappt: " + String.join(", ", failedIds) + " (Details in der Konsole)");
+        if (give.size() > free) Msg.line(s, "Das Inventar hatte nur " + free + " freie Plätze – der Rest liegt vor den Füßen.");
+        Msg.ok(target, "Dein Inventar vom " + when(g) + " wurde wiederhergestellt (" + ok + " Stapel). Rüstung bitte selbst wieder anziehen.");
     }
 
     /**

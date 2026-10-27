@@ -1,5 +1,5 @@
 name: WebConsole
-version: 1.3.0
+version: 1.4.0
 main: dev.webconsole.WebConsolePlugin
 api-version: '1.21'
 description: Server-Konsole im Browser mit Admin- und Member-Konten

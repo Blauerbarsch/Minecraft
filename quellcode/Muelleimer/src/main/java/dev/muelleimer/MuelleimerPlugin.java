@@ -56,6 +56,7 @@ public final class MuelleimerPlugin extends JavaPlugin implements Listener, Comm
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        Msg.init("Mülleimer");
         itemKey = new NamespacedKey(this, "muelleimer");
         recipeKey = new NamespacedKey(this, "muelleimer_rezept");
         marks = new TrashMarks(new NamespacedKey(this, "muelleimer_bloecke"));
@@ -115,7 +116,7 @@ public final class MuelleimerPlugin extends JavaPlugin implements Listener, Comm
             sound(p, "minecraft:block.barrel.open", 0.6f, 1.2f);
         } catch (Throwable t) {
             getLogger().log(java.util.logging.Level.SEVERE, "Mülleimer konnte nicht geöffnet werden", t);
-            p.sendMessage("§cDer Mülleimer konnte nicht geöffnet werden – Details stehen in der Server-Konsole.");
+            Msg.err(p, "Der Mülleimer konnte nicht geöffnet werden – Details stehen in der Server-Konsole.");
         }
     }
 
@@ -154,7 +155,7 @@ public final class MuelleimerPlugin extends JavaPlugin implements Listener, Comm
         undo.put(p.getUniqueId(), thrown, now);
         sound(p, "minecraft:block.composter.empty", 0.8f, 0.9f);
         long sec = undo.secondsLeft(p.getUniqueId(), now);
-        p.sendMessage("§7" + count + " Items weggeworfen." + (sec > 0 ? " Versehen? §f/trash undo §7(" + sec + " Sek.)" : ""));
+        Msg.info(p, Msg.val(count) + " Items weggeworfen." + (sec > 0 ? " Versehen? " + Msg.cmd("/trash undo") + " (noch " + sec + " Sek.)" : ""));
     }
 
     @EventHandler
@@ -168,7 +169,7 @@ public final class MuelleimerPlugin extends JavaPlugin implements Listener, Comm
     public void onPlace(BlockPlaceEvent ev) {
         if (!isTrashItem(ev.getItemInHand())) return;
         marks.mark(ev.getBlockPlaced());
-        ev.getPlayer().sendMessage("§7Mülleimer aufgestellt – Rechtsklick zum Benutzen.");
+        Msg.info(ev.getPlayer(), "Mülleimer aufgestellt – Rechtsklick zum Benutzen.");
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -228,33 +229,38 @@ public final class MuelleimerPlugin extends JavaPlugin implements Listener, Comm
         String sub = args.length > 0 ? args[0].toLowerCase(Locale.ROOT) : "";
         switch (sub) {
             case "", "open" -> {
-                if (!(sender instanceof Player p)) { sender.sendMessage("Nur im Spiel."); return true; }
-                if (!p.hasPermission("muelleimer.use")) { p.sendMessage("§cDazu fehlt dir die Berechtigung."); return true; }
+                if (!(sender instanceof Player p)) { Msg.err(sender, "Das geht nur im Spiel."); return true; }
+                if (!p.hasPermission("muelleimer.use")) { Msg.err(p, "Dazu fehlt dir die Berechtigung."); return true; }
                 open(p);
             }
             case "undo", "zurück", "zurueck" -> {
-                if (!(sender instanceof Player p)) { sender.sendMessage("Nur im Spiel."); return true; }
+                if (!(sender instanceof Player p)) { Msg.err(sender, "Das geht nur im Spiel."); return true; }
                 List<ItemStack> back = undo.take(p.getUniqueId(), System.currentTimeMillis());
-                if (back.isEmpty()) { p.sendMessage("§7Nichts zum Zurückholen – entweder nichts weggeworfen oder schon zu lange her."); return true; }
+                if (back.isEmpty()) { Msg.info(p, "Nichts zum Zurückholen – entweder nichts weggeworfen oder schon zu lange her."); return true; }
                 int n = 0;
                 for (ItemStack it : back) {
                     n += it.getAmount();
                     for (ItemStack left : p.getInventory().addItem(it).values())
                         p.getWorld().dropItemNaturally(p.getLocation(), left);
                 }
-                p.sendMessage("§a" + n + " Items zurückgeholt.");
+                Msg.ok(p, n + " Items zurückgeholt.");
             }
             case "block", "geben" -> {
-                if (!sender.hasPermission("muelleimer.block")) { sender.sendMessage("§cNur für OPs."); return true; }
+                if (!sender.hasPermission("muelleimer.block")) { Msg.err(sender, "Das dürfen nur OPs."); return true; }
                 Player target = args.length > 1 ? getServer().getPlayerExact(args[1]) : (sender instanceof Player p ? p : null);
-                if (target == null) { sender.sendMessage("Spieler nicht gefunden. /trash block <Spieler>"); return true; }
+                if (target == null) { Msg.err(sender, "Spieler nicht gefunden. Nutzung: " + Msg.cmd("/trash block <Spieler> [Anzahl]")); return true; }
                 int amount = 1;
                 if (args.length > 2) try { amount = Math.max(1, Math.min(64, Integer.parseInt(args[2]))); } catch (NumberFormatException ignored) { }
                 for (ItemStack left : target.getInventory().addItem(trashItem(amount)).values())
                     target.getWorld().dropItemNaturally(target.getLocation(), left);
-                sender.sendMessage(amount + "× Mülleimer an " + target.getName() + " gegeben.");
+                Msg.ok(sender, amount + "× Mülleimer an " + Msg.name(target.getName()) + Msg.OK + " gegeben.");
             }
-            default -> sender.sendMessage("§7/trash §f– öffnen  §7/trash undo §f– zurückholen  §7/trash block §f– Mülleimer-Block (OP)");
+            default -> {
+                Msg.head(sender, "Mülleimer");
+                Msg.line(sender, Msg.cmd("/trash") + " – öffnen");
+                Msg.line(sender, Msg.cmd("/trash undo") + " – zuletzt Weggeworfenes zurückholen");
+                if (sender.hasPermission("muelleimer.block")) Msg.line(sender, Msg.cmd("/trash block <Spieler> [Anzahl]") + " – Mülleimer-Block geben");
+            }
         }
         return true;
     }

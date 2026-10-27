@@ -124,6 +124,7 @@ public final class ServerStatsPlugin extends JavaPlugin implements Listener, Com
     @Override
     public void onEnable() {
         saveDefaultConfig();
+        Msg.init("Statistik");
         for (String s : getConfig().getStringList("hidden-players")) hidden.add(s.toLowerCase(Locale.ROOT));
         for (String[] d : DEFS) {
             List<StatRef> refs = new ArrayList<>();
@@ -143,6 +144,7 @@ public final class ServerStatsPlugin extends JavaPlugin implements Listener, Com
         snaps = new PlayerSnapshots(new File(getDataFolder(), "players.json"), getLogger(),
                 getConfig().getBoolean("players-page.members-see-location", false),
                 getConfig().getBoolean("players-page.members-see-inventory", false));
+        snaps.serverName = getConfig().getString("server-name", "Unser Server");
         snaps.load();
         for (Player p : getServer().getOnlinePlayers()) snaps.joined(p);
 
@@ -317,29 +319,29 @@ public final class ServerStatsPlugin extends JavaPlugin implements Listener, Com
             target = p;
         }
         if (target == null) {
-            sender.sendMessage("§cSpieler nicht gefunden. Nutzung: /stats [Spieler]");
+            Msg.err(sender, "Spieler nicht gefunden. Nutzung: " + Msg.cmd("/stats [Spieler]"));
             return true;
         }
         refresh(target, target.isOnline());
         Map<String, Object> row = rows.get(target.getUniqueId());
         if (row == null) {
-            sender.sendMessage("§cKeine Daten.");
+            Msg.err(sender, "Für diesen Spieler gibt es noch keine Daten.");
             return true;
         }
         @SuppressWarnings("unchecked")
         Map<String, Object> st = (Map<String, Object>) row.get("stats");
-        sender.sendMessage("§6§l" + row.get("name") + " §7– Statistik");
+        Msg.head(sender, String.valueOf(row.get("name")));
         String[] show = {"playtime", "deaths", "mob_kills", "diamonds", "walked", "fish"};
         for (String k : show) {
             for (Def d : defs) {
                 if (!d.key().equals(k)) continue;
                 Object v = st.get(k);
                 String val = d.dec() == 0 ? String.valueOf(Math.round(((Number) v).doubleValue())) : String.valueOf(v);
-                sender.sendMessage("§7" + d.label() + ": §f" + val + (d.unit().isEmpty() ? "" : " " + d.unit()));
+                Msg.kv(sender, d.label(), val + (d.unit().isEmpty() ? "" : " " + d.unit()));
             }
         }
         String url = getConfig().getString("web.public-url", "");
-        if (url != null && !url.isBlank()) sender.sendMessage("§7Mehr auf §b" + url);
+        if (url != null && !url.isBlank()) Msg.line(sender, "Mehr auf " + Msg.CMD + url);
         return true;
     }
 }
