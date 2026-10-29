@@ -1,0 +1,15 @@
+name: Tageszeit
+version: 1.0.0
+main: dev.tageszeit.TageszeitPlugin
+api-version: '1.21'
+description: Längere Tage und Nächte, Schlafen funktioniert weiter
+author: lucagum
+commands:
+  zeit:
+    description: Zeigt, wie lange es noch hell ist; Admins stellen die Länge ein
+    usage: /zeit [tag|nacht <Minuten>|reload]
+    aliases: [tageszeit]
+permissions:
+  tageszeit.admin:
+    description: Länge von Tag und Nacht ändern
+    default: op

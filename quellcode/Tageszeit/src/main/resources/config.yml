@@ -1,0 +1,8 @@
+# Tageszeit – wie lang Tag und Nacht in echten Minuten dauern
+# Normales Minecraft: Tag 10, Nacht 10 (die Nacht enthält Abend- und Morgendämmerung).
+# Ändern geht auch im Spiel oder in der Konsole: /zeit tag 30  bzw.  /zeit nacht 10
+tag-minuten: 30
+nacht-minuten: 10
+
+# Welten, in denen die Zeit normal läuft (Nether und End sind immer ausgenommen)
+ausgenommen: []

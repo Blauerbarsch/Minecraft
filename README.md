@@ -1,4 +1,4 @@
-# Minecraft-Server-Plugins (Stand 27.10.2026)
+# Minecraft-Server-Plugins (Stand 29.10.2026)
 
 ## plugins/ – fertige Jars für den plugins-Ordner
 | Plugin | Version | Was |
@@ -9,6 +9,7 @@
 | WochenChallenge | 1.2.0 | Wöchentliche Challenges mit Belohnungen, `/challenge` |
 | GraveRestore | 1.3.0 | Inventare aus DeathChest-Logs wiederherstellen, `grab liste` / `grab zurück` (nur Konsole) |
 | Muelleimer | 1.1.0 | `/trash`, `/trash undo`, Mülleimer-Block (Kessel + Kaktus) |
+| Tageszeit | 1.0.0 | Längere Tage (Vorgabe 30 Min. Tag, 10 Min. Nacht), Schlafen und Onlysleep funktionieren weiter, `/zeit` |
 
 Beim Aktualisieren die alten Jars aus dem plugins-Ordner löschen, die neuen hineinlegen, Server neu starten.
 Konfigurationen und Daten bleiben erhalten.
